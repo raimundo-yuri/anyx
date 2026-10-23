@@ -1,0 +1,49 @@
+import { reversalFor } from '../../domain/queries';
+import { useState } from 'react';
+import type { State } from '../../domain/model';
+import { sum } from '../../domain/money';
+import { formatMoney, displayDate } from '../../application/finance-view';
+import { planningData } from '../../application/planning';
+import { FinanceData } from './FinanceData';
+import { CommandDialog, type InputField } from './CommandDialog';
+import { type DialogSpec, options, today, inputMoney, dateField } from './finance-fields';
+import { useCommand } from './use-finance';
+import styles from './Finance.module.css';
+
+export function Planning() { return <FinanceData>{state => <PlanningContent state={state} />}</FinanceData>; }
+function PlanningContent({ state }: { state: State }) {
+  const [month, setMonth] = useState(today().slice(0, 7)), [includeIncome, setIncludeIncome] = useState(false);
+  const [dialog, setDialog] = useState<DialogSpec | null>(null), [notice, setNotice] = useState('');
+  const action = useCommand(() => setNotice('Planejamento atualizado. Nenhuma previsão foi tratada como certeza.'));
+  const close = () => setDialog(null), saved = () => { close(); setNotice('Planejamento salvo.'); };
+  const data = planningData(state, month, includeIncome);
+  const accounts = options(state.accounts.filter(item => !item.archived));
+  const expenseCategories = options(state.categories.filter(item => !item.archived && item.kind === 'expense'));
+  function forecast(kind: 'income' | 'expense', recurring = false) {
+    const fields: InputField[] = [
+      { name: 'name', label: 'Descrição' }, { name: 'amount', label: 'Valor previsto (R$)', type: 'money' },
+      { name: 'accountId', label: 'Conta', type: 'select', options: accounts },
+      { name: 'categoryId', label: 'Categoria', type: 'select', options: options(state.categories.filter(item => !item.archived && item.kind === kind)) },
+      ...(kind === 'income' ? [{ name: 'sourceId', label: 'Fonte de receita', type: 'select' as const, options: options(state.sources.filter(item => !item.archived)) }] : []),
+      ...(recurring ? [{ name: 'day', label: 'Dia do mês', type: 'number' as const, min: 1, max: 31, value: '5' }, { name: 'active', label: 'Recorrência ativa', type: 'checkbox' as const, value: true }] : [{ name: 'date', label: 'Data prevista', type: 'date' as const, value: today() }]),
+    ];
+    setDialog({ title: recurring ? (kind === 'income' ? 'Receita recorrente' : 'Despesa recorrente') : (kind === 'income' ? 'Receita prevista' : 'Despesa prevista'), help: 'Criar o planejamento não altera caixa, renda ou consumo realizados. Confirme cada ocorrência somente quando receber ou pagar.', fields, build: (values, id) => ({ ...values, type: recurring ? 'createRecurring' : 'createForecast', kind, id }) });
+  }
+  return <div className={styles.workspace}>
+    <div className={styles.toolbar}><div><span className={styles.eyebrow}>UM PASSO À FRENTE</span><h2>Planejamento, orçamentos e metas</h2></div><label className={styles.filterLabel}>Mês do planejamento<input type="month" value={month} onChange={event => { if (event.target.value) setMonth(event.target.value); }} /></label></div>
+    {notice && <p className={styles.success} role="status">{notice}</p>}{action.error && <p className={styles.error} role="alert">{action.error}</p>}
+    <div className={styles.metrics}><div><span>Projeção conservadora até o fim do mês</span><strong>{formatMoney(data.conservative)}</strong><small>Disponível menos faturas, principal de empréstimos devidos e despesas previstas até o período.</small></div><div><span>Receitas previstas</span><strong>{formatMoney(data.predictedIncome)}</strong><small>Não são receitas recebidas.</small></div><div><span>Despesas previstas</span><strong>{formatMoney(data.predictedExpense)}</strong><small>Não são despesas realizadas.</small></div></div><label className={styles.checkbox}><input type="checkbox" checked={includeIncome} onChange={event => setIncludeIncome(event.target.checked)} />Incluir receitas previstas na projeção (cenário incerto)</label><p className={styles.hint}>Não duplique o mesmo compromisso como fatura, previsão e reserva. A projeção desconta cada registro informado, não identifica compromissos equivalentes por descrição.</p>
+    <div className={styles.toolbar}><h2>Orçamentos mensais</h2><button className={styles.secondary} onClick={() => setDialog({ title: 'Definir orçamento', help: 'Definir novamente a mesma categoria e mês atualiza o limite, sem duplicá-lo.', fields: [{ name: 'categoryId', label: 'Categoria de despesa', type: 'select', options: expenseCategories }, { name: 'month', label: 'Mês', type: 'month', value: month }, { name: 'amount', label: 'Limite mensal (R$)', type: 'money' }], build: (values, id) => ({ ...values, id, type: 'setBudget' }) })}>Definir orçamento</button></div>
+    <div className={styles.accountGrid}>{data.budgets.map(budget => <article className={styles.accountCard} key={budget.id}><h3>{budget.name}</h3><p>{formatMoney(budget.spent)} de {formatMoney(budget.amount)}</p><div className={styles.bar}><span style={{ width: `${Math.min(100, budget.spent / budget.amount * 100)}%`, background: budget.spent > budget.amount ? '#e4ad96' : undefined }} /></div><p>{budget.spent > budget.amount ? 'Limite ultrapassado' : `Restante: ${formatMoney(budget.amount - budget.spent)}`}</p></article>)}</div>{!data.budgets.length && <p className={styles.hint}>Nenhum orçamento para este mês.</p>}
+    <div className={styles.toolbar}><h2>Metas e reservas</h2><button className={styles.secondary} onClick={() => setDialog({ title: 'Nova meta', help: 'A meta não cria dinheiro. Reserve somente valores já disponíveis na conta escolhida.', fields: [{ name: 'name', label: 'Nome da meta' }, { name: 'accountId', label: 'Conta da reserva', type: 'select', options: accounts }, { name: 'target', label: 'Valor-alvo (R$)', type: 'money' }, { name: 'deadline', label: 'Prazo', type: 'date', value: today() }], build: (values, id) => ({ ...values, id, type: 'createGoal' }) })}>Nova meta</button></div>
+    <div className={styles.accountGrid}>{state.goals.map(goal => {
+      const amount = sum(state.reserves.filter(item => item.goalId === goal.id).map(item => item.amount));
+      return <article className={styles.accountCard} key={goal.id}><h3>{goal.name}</h3><p>{displayDate(goal.deadline)} · {amount === goal.target ? 'Meta alcançada' : goal.deadline < today() ? 'Prazo ultrapassado' : 'Em andamento'}</p><strong className={styles.statValue}>{formatMoney(amount)}</strong><p>Alvo: {formatMoney(goal.target)}</p><div className={styles.bar}><span style={{ width: `${amount / goal.target * 100}%` }} /></div><button className={styles.secondary} onClick={() => setDialog({ title: 'Ajustar reserva da meta', help: 'Informe o total reservado, não um acréscimo. Zero libera toda a reserva. Não gera nova despesa.', fields: [{ name: 'amount', label: 'Total reservado (R$)', type: 'money', value: inputMoney(amount) }], build: values => ({ ...values, id: goal.id, type: 'fundGoal' }) })}>Ajustar reserva</button></article>;
+    })}</div>
+    <div className={styles.toolbar}><h2>Previsões e calendário</h2><div className={styles.toolbarActions}><button className={styles.secondary} onClick={() => forecast('income')}>Receita prevista</button><button className={styles.secondary} onClick={() => forecast('expense')}>Despesa prevista</button></div></div>
+    <div className={styles.stack}>{state.forecasts.filter(item => item.date.startsWith(month)).sort((a, b) => a.date.localeCompare(b.date)).map(item => <article className={styles.accountCard} key={item.id}><div className={styles.toolbar}><div><h3>{item.name} · {formatMoney(item.amount)}</h3><p>{displayDate(item.date)} · {item.kind === 'income' ? 'Receita' : 'Despesa'} · {item.operationId ? (reversalFor(state, item.operationId) ? 'Realização estornada' : 'Realizada') : item.cancelled ? 'Cancelada' : item.date < today() ? 'Prevista, vencida' : 'Prevista'}</p></div>{!item.operationId && !item.cancelled && <div className={styles.toolbarActions}><button className={styles.secondary} onClick={() => void action.submit(() => ({ type: 'settleForecast', id: item.id, date: today(), action: 'cancel' }))}>Cancelar previsão</button><button className={styles.primary} onClick={() => setDialog({ title: 'Confirmar realização', help: `Confirme somente se ${formatMoney(item.amount)} já foi ${item.kind === 'income' ? 'recebido' : 'pago'}. Libere uma eventual reserva que esteja destinada a este pagamento antes de confirmar.`, fields: [dateField()], build: values => ({ ...values, id: item.id, type: 'settleForecast', action: 'confirm' }) })}>Confirmar realização</button></div>}</div></article>)}</div>
+    <div className={styles.toolbar}><h2>Recorrências e assinaturas</h2><div className={styles.toolbarActions}><button className={styles.secondary} onClick={() => forecast('income', true)}>Receita recorrente</button><button className={styles.secondary} onClick={() => forecast('expense', true)}>Despesa recorrente</button><button disabled={!state.recurrings.some(item => item.active)} className={styles.primary} onClick={() => void action.submit(() => ({ type: 'generateForecasts', month }))}>Gerar previsões do mês</button></div></div><p className={styles.hint}>Gerar previsões é uma ação manual, repetível sem duplicação. Não registra pagamentos nem exige processo em segundo plano.</p>
+    <ul className={styles.detailList}>{state.recurrings.map(item => <li key={item.id}><span>{item.name} · dia {item.day} · {formatMoney(item.amount)} · {item.active ? 'Ativa' : 'Pausada'}</span><button className={styles.secondary} onClick={() => void action.submit(() => ({ type: 'toggleRecurring', id: item.id, active: !item.active }))}>{item.active ? 'Pausar' : 'Ativar'}</button></li>)}</ul>
+    {dialog && <CommandDialog {...dialog} onClose={close} onSaved={saved} />}
+  </div>;
+}

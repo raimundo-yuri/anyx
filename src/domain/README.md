@@ -1,0 +1,1 @@
+Motor financeiro puro: esquemas em model.ts; centavos e datas; operações em engine.ts; integridade em integrity.ts; consultas em queries.ts. Não depende de React, Dexie ou navegador. Consulte docs/REGRAS-FINANCEIRAS.md e finance.test.ts.

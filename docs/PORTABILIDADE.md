@@ -1,0 +1,90 @@
+# Backup, importação, relatórios e Power BI
+
+## Backup
+
+Em **Relatórios e backup**, escolha exportar com senha (padrão) ou desative explicitamente a criptografia. O arquivo inclui todas as tabelas, lançamentos, relações e recibos de idempotência.
+
+Formato JSON atual `dexfin`, versão 3, com `exportedAt` UTC e `state`. Todas as tabelas atuais são obrigatórias. O leitor também aceita o envelope v2 e adapta estados legados sem trocar IDs; parcelas únicas antigas são derivadas da compra original. Versões desconhecidas são rejeitadas. Estornos de correção exigem envelope v3, que a versão 0.8 do aplicativo não lê. O envelope criptografado continua na versão 1 e protege o JSON interno atual.
+
+Formato protegido `dexfin-encrypted`, versão 1: PBKDF2-SHA-256 com 310.000 iterações, salt aleatório de 16 bytes, chave AES-GCM de 256 bits e IV aleatório de 12 bytes. A chave não é extraível; salt/IV e ciphertext ficam no envelope. A senha não é gravada. Perda da senha significa perda do acesso a esse backup. Integridade autenticada detecta senha incorreta ou ciphertext alterado; um backup JSON sem proteção não é prova de autenticidade contra alteração intencional.
+
+Arquivos devem ter no máximo 20 MiB, inclusive o envelope criptografado. O exportador também verifica esse limite, para não gerar um backup que o leitor recusaria. CSV é alternativa de portabilidade tabular, não substituto completo do backup.
+
+## Restaurar com segurança
+
+1. Exporte o estado atual para manter uma opção de recuperação.
+2. Selecione o backup e, se necessário, informe a senha.
+3. Use **Validar e visualizar backup** e confira contas, operações, compras, recebíveis e caixa.
+4. Confirme explicitamente a substituição total dos dados locais.
+5. Use **Confirmar restauração** e confira os saldos.
+
+A validação inclui formas, referências, partidas balanceadas, parcelas, reservas e pendentes. A escrita ocorre em uma única transação, inclusive limpeza/substituição e recibos. Falha de escrita reverte o estado anterior. Uma alteração entre a prévia e a confirmação exige rever a prévia; o aplicativo não sobrescreve silenciosamente a atividade de outra aba.
+
+Teste a recuperação em um perfil separado antes de depender do backup. Os testes automatizados cobrem exportar/restaurar, senha errada, corrupção, falha após limpeza e conflito com mudança concorrente. Não apague dados do navegador como tentativa de reparo de um banco com erro. Se a leitura normal falhar por inconsistência, o fluxo **Abrir recuperação de dados** na tela de erro oferece a recuperação descrita abaixo.
+
+## Recuperação de um banco inconsistente
+
+1. Na tela de erro, use **Abrir recuperação de dados**. Isso não exclui nada.
+2. Selecione um backup válido, informe sua senha quando necessária e use **Validar backup para recuperação**.
+3. Confira a prévia e use **Baixar cópia de diagnóstico**. Guarde o arquivo antes de continuar: ele é legível, contém os registros atuais sem tentar corrigi-los e pode estar inconsistente. Seu formato `dexfin-recovery` não é aceito como backup restaurável.
+4. Confirme que guardou a cópia e entende a substituição. Use **Confirmar recuperação**.
+5. A transação compara os registros brutos com a prévia, recusa alterações concorrentes e aceita somente uma substituição validada. Qualquer falha de escrita reverte a troca inteira. Ao concluir, a aplicação recarrega e os indicadores voltam a consultar o banco.
+
+A recuperação especial só substitui um estado inconsistente; se os dados atuais forem válidos, o usuário é orientado a recarregar e usar a restauração normal. Não há reparo automático nem exclusão silenciosa. O fluxo depende de conseguir abrir, ler, serializar e gravar o IndexedDB; não recupera falha física, dados já removidos ou senha perdida. Sem backup válido, preserve os dados e procure diagnóstico técnico antes de alterar o perfil. Não envie a cópia bruta para serviços públicos.
+
+## CSV e Power BI
+
+As tabelas são exportadas individualmente, com UTF-8/BOM e ponto e vírgula. Cabeçalhos seguem o modelo versionado; UUIDs permanecem estáveis. Datas civis usam ISO `YYYY-MM-DD`, instantes são UTC. `amount`, `principal`, `target`, `limit`, `value` e demais campos monetários são **centavos inteiros**, sem símbolo nem separador brasileiro. Divida por 100 somente para apresentação no Power BI. `basisPoints` é percentual multiplicado por 100 (750 = 7,5%).
+
+Relacionamentos principais:
+
+| Origem | Destino | Relação |
+| --- | --- | --- |
+| entries.operationId | operations.id | Vários lançamentos por operação |
+| operations.relatedId, quando kind = reversal | operations.id | Estorno integral ligado ao original |
+| contributions.cancelledById | operations.id | Estorno que cancelou a contribuição pendente, quando preenchido |
+| purchases.operationId | operations.id | Operação original da compra |
+| splits.purchaseId | purchases.id | Responsabilidades de uma compra |
+| installments.purchaseId | purchases.id | Parcelas do cartão da compra |
+| installments.invoiceId | invoices.id | Fatura que recebe a parcela |
+| invoices.cardId | cards.id | Cartão da fatura |
+| receivables.splitId | splits.id | Direito decorrente da divisão |
+| receivables.personId | people.id | Pessoa devedora |
+| receivableSchedules.receivableId | receivables.id | Plano independente de reembolso |
+| reserves.accountId | accounts.id | Caixa já existente reservado |
+| reserves.goalId | goals.id | Reserva de meta, quando preenchido |
+| contributions.incomeId | operations.id | Origem realizada da contribuição |
+| forecasts.operationId | operations.id | Realização confirmada da previsão |
+
+`entries.referenceId` é uma referência tipada por `entries.ledger`; não estabeleça uma relação única indiscriminada entre esse campo e todas as tabelas. Crie dimensões/consultas filtradas por natureza: cash→accounts, card→invoices, receivable→receivables, expense→categories, income→sources, investment/valuation→investments, loanAsset/loanDebt→loans.
+
+Estornos de correção preservam o original e criam entradas exatamente inversas na mesma data financeira. Para acompanhar correções, filtre `operations.kind = reversal` e relacione `relatedId` ao original.
+
+Receita é o saldo credor dos lançamentos `income`. Consumo é o saldo devedor de `expense`. Inclua os créditos de despesa e débitos de receita para que os estornos sejam descontados. Não some compras, divisões, parcelas e pagamentos para calcular despesa: isso duplicaria fatos. A compra compartilhada de R$ 300 com R$ 120 pessoais produz R$ 120 de despesa, R$ 180 a receber e R$ 300 no passivo; parcelas apenas distribuem o passivo entre faturas. Transferência, pagamento de fatura, reembolso, empréstimo principal e aporte/resgate não são consumo ou renda.
+
+Arrays, quando presentes (como `sourceIds`), são JSON textual e podem ser expandidos no Power Query para uma tabela de ponte. Campos de texto que poderiam executar fórmulas em planilhas recebem apóstrofo; campos numéricos, inclusive negativos, continuam numéricos. A exportação inclui dados pessoais de nomes/descrições: proteja os arquivos.
+
+## Importação CSV DexFin v1
+
+O importador é um adaptador explícito para receitas/despesas realizadas, não um importador bancário universal. OFX permanece planejado, sem conexão simulada. Use **Baixar modelo de importação** ou mapeie suas colunas para:
+
+```text
+externalId;date;type;description;amount;accountId;categoryId;sourceId
+```
+
+- `externalId`: identificador estável do lançamento no extrato (até 120 caracteres).
+- `date`: data ISO válida, até hoje no fuso configurado.
+- `type`: `income` ou `expense`.
+- `description`: descrição não vazia, até 120 caracteres.
+- `amount`: centavos inteiros positivos; não usar valor decimal em reais.
+- `accountId`: UUID de conta ativa já cadastrada.
+- `categoryId`: UUID de categoria ativa da natureza correta.
+- `sourceId`: UUID de fonte ativa, obrigatório para receita e dispensável para despesa.
+
+A conta e o ID externo determinam uma chave UUID estável derivada de SHA-256. Repetir o mesmo conteúdo não duplica. Reutilizar a mesma conta/ID externo com outro conteúdo causa conflito, não sobrescrita. Dois IDs externos diferentes representam fatos distintos: deduplicação não pode adivinhar equivalência por descrição.
+
+Até 5.000 registros e 20 MiB; CSV com aspas, ponto e vírgula e quebras de linha é analisado com validação estrita. Todas as linhas são simuladas/validadas antes da prévia. Revise a prévia, confirme e importe; todo o lote é atômico, inclusive em falha posterior à primeira linha.
+
+## PDF
+
+Escolha o mês em **Relatório financeiro** e use **Imprimir / salvar PDF**. A impressão contém fluxos do período, estoques atuais explicitamente identificados e o histórico selecionado. O PDF é produzido pela opção Salvar como PDF do navegador, não por um serviço externo. O estilo de impressão remove menus e controles.

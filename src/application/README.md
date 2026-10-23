@@ -1,0 +1,1 @@
+FinanceRepository define leitura e execução atômica. FinanceService oferece comandos tipados e consultas para a apresentação. UUIDs de idempotência devem ser preservados ao repetir uma mesma ação. O adaptador local valida novamente todos os comandos.

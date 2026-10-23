@@ -1,0 +1,1 @@
+FinanceDatabase define o esquema Dexie/IndexedDB versão 1. IndexedDbFinanceRepository implementa unidade de trabalho transacional, validações e persistência dos registros alterados. Testes verificam rollback, reabertura, idempotência e concorrência entre conexões.

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-pages/
+coverage/
+.vite/
+.env
+.env.*
+!.env.example
+*.local
+*.log
+.npm-cache/
+test-results/
+playwright-report/
+test-results-production/
+test-results-pages/
+releases/
