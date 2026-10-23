@@ -173,3 +173,9 @@ Manifesto, ícones, registro/escopo do service worker, lista de precache e fallb
 Validação local antes da publicação: 113 testes unitários/de integração/interface, 20 fluxos de navegador, 18 testes de produção e dois testes específicos do caminho do Pages, todos aprovados (153 no total). Tipagem e builds da raiz e de `/anyx/` passaram. O teste de Pages inclui manifesto, escopo, assets, recarga e gravação offline em desktop/viewport móvel.
 
 Os arquivos de publicação incluem somente o site e as licenças; não publicam o IndexedDB do usuário, backups, diagnósticos, configurações privadas ou resultados dos testes. O uso em dispositivos diferentes continua sem sincronização. Repositórios no mesmo domínio GitHub Pages compartilham origem; essa limitação está descrita no guia. O status de publicação pode ser acompanhado em GitHub → Actions.
+
+### Resultado do envio e configuração externa pendente
+
+O código foi enviado com sucesso para `main` no GitHub (commit inicial de publicação `45853f1`). A execução remota instalou as dependências e aprovou os testes; parou ao consultar o Pages porque o site ainda não está habilitado. A tentativa de ativar pela API retornou `403 Resource not accessible by integration`; a integração não dispõe das permissões de ativação inicial exigidas pelo GitHub.
+
+Ação do proprietário: Settings → Pages → Build and deployment → Source → GitHub Actions. Depois reexecutar o fluxo de publicação em Actions, ou retomar a conversa para concluir a execução e verificar o endereço público. Código publicado não significa que o site já esteja no ar. O endereço previsto é `https://raimundo-yuri.github.io/anyx/`; ele só deve ser informado como disponível após publicação e verificação.

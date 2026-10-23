@@ -1,6 +1,6 @@
 # Instalação, primeiros passos e manutenção — 0.9.1
 
-O DexFin está preparado para uso pessoal local no navegador. A versão web está em https://raimundo-yuri.github.io/anyx/ e abre no computador ou celular. Não há cadastro externo, serviço pago ou credencial bancária a configurar. O ambiente de desenvolvimento já preparado pode continuar sendo usado; publicar configurações desse ambiente não publica o aplicativo nem transfere os registros do navegador.
+O DexFin está preparado para uso pessoal local no navegador. O código está no GitHub; a publicação web depende da ativação inicial do Pages descrita abaixo. O endereço previsto para computador e celular é https://raimundo-yuri.github.io/anyx/. Não há cadastro externo, serviço pago ou credencial bancária a configurar. O ambiente de desenvolvimento já preparado pode continuar sendo usado; publicar configurações desse ambiente não publica o aplicativo nem transfere os registros do navegador.
 
 ## Executar em outro computador
 
@@ -43,7 +43,7 @@ Mantenha a mesma origem e perfil: protocolo, domínio e porta identificam o arma
 
 ## Usar a publicação no GitHub Pages
 
-Abra https://raimundo-yuri.github.io/anyx/ no navegador. Para Android, use a opção de instalar o app oferecida pelo navegador; no Safari do iPhone, Compartilhar → Adicionar à Tela de Início. O site pode ser testado sem instalação. Aguarde a indicação de disponibilidade offline antes de testar sem rede.
+Ative inicialmente **GitHub → Settings → Pages → Build and deployment → Source → GitHub Actions**. Em **Actions → Publicar DexFin no GitHub Pages**, use **Run workflow** com a branch `main`. Após a execução concluir com sucesso, abra https://raimundo-yuri.github.io/anyx/ no navegador. Para Android, use a opção de instalar o app oferecida pelo navegador; no Safari do iPhone, Compartilhar → Adicionar à Tela de Início. O site pode ser testado sem instalação. Aguarde a indicação de disponibilidade offline antes de testar sem rede.
 
 O fluxo `.github/workflows/pages.yml` é acionado por envios para `main` ou manualmente em GitHub → Actions. Ele usa Node 24, `npm ci`, os testes, o build com o caminho do Pages e o artefato estático. Credenciais temporárias de publicação são fornecidas pelo GitHub; nenhum segredo é incorporado ao app.
 

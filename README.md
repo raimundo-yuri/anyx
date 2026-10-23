@@ -4,7 +4,7 @@ Gestão financeira pessoal em português, com persistência local, valores em ce
 
 ## Testar no computador ou celular
 
-[Abrir o DexFin](https://raimundo-yuri.github.io/anyx/). A publicação usa GitHub Pages com HTTPS. Os registros ficam no perfil do navegador de cada dispositivo; não há sincronização automática. Para instalar, use a opção do navegador de adicionar o site à tela inicial.
+A publicação aguarda a ativação inicial do GitHub Pages. Em [Settings → Pages](https://github.com/raimundo-yuri/anyx/settings/pages), selecione **Build and deployment → Source → GitHub Actions**. Depois execute o fluxo **Publicar DexFin no GitHub Pages** em Actions. Após ele concluir, o app estará em [DexFin](https://raimundo-yuri.github.io/anyx/), com HTTPS. Os registros ficam no perfil do navegador de cada dispositivo; não há sincronização automática. Para instalar, use a opção do navegador de adicionar o site à tela inicial.
 
 ## O que funciona
 
