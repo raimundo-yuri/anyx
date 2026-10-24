@@ -11,3 +11,7 @@
 
 .movementAction{display:block;min-height:36px;min-width:44px;margin-top:6px;padding:4px 0;border:0;background:transparent;color:#c4dfa9;font:inherit;font-size:11px;text-align:left;cursor:pointer}.movementAction:hover{text-decoration:underline}.field textarea{background:#10160e;border:1px solid #ffffff20;border-radius:7px;color:#e0e7d8;padding:12px;max-width:100%;width:100%;font:inherit;resize:vertical}
 .reversalBalance{display:flex;flex-direction:column;align-items:flex-end;gap:3px;text-align:right}@media(max-width:760px){.movementAction{min-height:44px;font-size:12px}}
+
+.accountBottom{flex-wrap:wrap}
+
+@media print{.backupReminder{display:none!important}}

@@ -6,11 +6,11 @@ import { FinanceError } from '../domain/errors';
 import { requireWebCrypto } from './crypto';
 
 export const MAX_FILE_SIZE = 20 * 1024 * 1024;
-const envelope = z.strictObject({ format: z.literal('dexfin'), version: z.union([z.literal(2), z.literal(3)]), exportedAt: z.iso.datetime(), state: z.unknown() });
+const envelope = z.strictObject({ format: z.literal('dexfin'), version: z.union([z.literal(2), z.literal(3), z.literal(4)]), exportedAt: z.iso.datetime(), state: z.unknown() });
 const encryptedEnvelope = z.strictObject({ format: z.literal('dexfin-encrypted'), version: z.literal(1), iterations: z.literal(310000), salt: z.string(), iv: z.string(), data: z.string() });
 export function plainBackup(state: State, now = new Date().toISOString()): string {
   assertState(state);
-  const text = JSON.stringify({ format: 'dexfin', version: 3, exportedAt: now, state }, null, 2);
+  const text = JSON.stringify({ format: 'dexfin', version: 4, exportedAt: now, state }, null, 2);
   if (new TextEncoder().encode(text).length > MAX_FILE_SIZE) throw new FinanceError('Backup maior que o limite suportado de 20 MiB. Nenhum arquivo incompleto foi criado.');
   return text;
 }
@@ -53,6 +53,7 @@ export async function readBackup(text: string, password = ''): Promise<State> {
   const data = envelope.parse(raw);
   const state = data.version === 2 ? upgradeSnapshot(data.state) : stateSchema.parse(data.state);
   if (data.version === 2 && state.operations.some(item => item.kind === 'reversal')) throw new FinanceError('Backups com estornos de correção precisam usar o formato versão 3.');
+  if (data.version < 4 && state.categories.some(item => item.parentId)) throw new FinanceError('Backups com subcategorias precisam usar o formato versão 4.');
   assertState(state);
   return state;
 }

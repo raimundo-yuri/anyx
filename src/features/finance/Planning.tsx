@@ -18,12 +18,12 @@ function PlanningContent({ state }: { state: State }) {
   const close = () => setDialog(null), saved = () => { close(); setNotice('Planejamento salvo.'); };
   const data = planningData(state, month, includeIncome);
   const accounts = options(state.accounts.filter(item => !item.archived));
-  const expenseCategories = options(state.categories.filter(item => !item.archived && item.kind === 'expense'));
+  const expenseCategories = options(state.categories.filter(item => !item.archived && item.kind === 'expense'), state.categories);
   function forecast(kind: 'income' | 'expense', recurring = false) {
     const fields: InputField[] = [
       { name: 'name', label: 'Descrição' }, { name: 'amount', label: 'Valor previsto (R$)', type: 'money' },
       { name: 'accountId', label: 'Conta', type: 'select', options: accounts },
-      { name: 'categoryId', label: 'Categoria', type: 'select', options: options(state.categories.filter(item => !item.archived && item.kind === kind)) },
+      { name: 'categoryId', label: 'Categoria', type: 'select', options: options(state.categories.filter(item => !item.archived && item.kind === kind), state.categories) },
       ...(kind === 'income' ? [{ name: 'sourceId', label: 'Fonte de receita', type: 'select' as const, options: options(state.sources.filter(item => !item.archived)) }] : []),
       ...(recurring ? [{ name: 'day', label: 'Dia do mês', type: 'number' as const, min: 1, max: 31, value: '5' }, { name: 'active', label: 'Recorrência ativa', type: 'checkbox' as const, value: true }] : [{ name: 'date', label: 'Data prevista', type: 'date' as const, value: today() }]),
     ];

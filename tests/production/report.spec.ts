@@ -13,7 +13,10 @@ test('produção: relatório gera PDF e exclusão exige confirmação literal', 
   await dialog.getByLabel('Data de abertura', { exact: true }).fill('2026-01-01');
   await dialog.getByRole('button', { name: 'Salvar', exact: true }).click(); await expect(dialog).not.toBeVisible();
   await nav(page, 'Relatórios e backup'); await page.getByLabel('Mês do relatório', { exact: true }).fill('2026-01');
+  const reminder = page.getByRole('complementary', { name: 'Lembrete de backup', exact: true });
+  await expect(reminder).toBeVisible();
   await page.emulateMedia({ media: 'print' });
+  await expect(reminder).not.toBeVisible();
   await expect(page.getByRole('heading', { name: 'Relatório financeiro · DexFin', exact: true })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Navegação principal' })).not.toBeVisible();
   const pdf = await page.pdf({ path: info.outputPath('finance-report.pdf'), format: 'A4' });

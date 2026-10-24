@@ -179,3 +179,40 @@ Os arquivos de publicação incluem somente o site e as licenças; não publicam
 O código foi enviado com sucesso para `main` no GitHub (commit inicial de publicação `45853f1`). A execução remota instalou as dependências e aprovou os testes; parou ao consultar o Pages porque o site ainda não está habilitado. A tentativa de ativar pela API retornou `403 Resource not accessible by integration`; a integração não dispõe das permissões de ativação inicial exigidas pelo GitHub.
 
 Ação do proprietário: Settings → Pages → Build and deployment → Source → GitHub Actions. Depois reexecutar o fluxo de publicação em Actions, ou retomar a conversa para concluir a execução e verificar o endereço público. Código publicado não significa que o site já esteja no ar. O endereço previsto é `https://raimundo-yuri.github.io/anyx/`; ele só deve ser informado como disponível após publicação e verificação.
+
+## Ativação do Pages concluída pelo proprietário
+
+O proprietário ativou a publicação e informou que já conseguia usar o app. A consulta posterior confirmou `build_type: workflow`, HTTPS e execução `40046522110` concluída com sucesso no commit `1588070`. O endereço `https://raimundo-yuri.github.io/anyx/` respondeu com HTTP 200. A restrição anterior de ativação inicial está resolvida; novos envios para `main` usam a automação existente.
+
+## Evolução gratuita — versão 0.10.0
+
+O usuário autorizou continuar as etapas gratuitas e as atualizações de versão/publicação. Não foram adicionados serviços pagos, dependências, credenciais ou sincronização. O desenvolvimento ocorre durante as rodadas de trabalho; a automação de Pages publica os commits enviados, mas não desenvolve funcionalidades em segundo plano.
+
+### Etapa 12 — importação OFX bancária
+
+Parser local de OFX XML/SGML para uma conta bancária BRL, com suporte a UTF-8/Windows-1252, limites de 20 MiB/5.000 transações e leitura exata de centavos/datas civis. Recusa DTD/entidades externas, correções OFX, câmbio, cartão/investimento e estruturas não suportadas. A interface exige correspondência da conta, classificação de receitas/despesas ou descarte explícito, prévia e confirmação. PIX/transferências e destinos de conta/cartão ficam pendentes de revisão individual. O lote é atômico e idempotente por conta DexFin + FITID; conflitos e equivalência com registros manuais/CSV não são resolvidos por adivinhação.
+
+### Etapa 13 — conferência manual de saldo
+
+Cada conta oferece **Conferir saldo**, com data de corte e saldo do extrato, inclusive negativo. A consulta calcula o caixa, a diferença em centavos e as movimentações correspondentes, considerando transferências e estornos. Não altera o banco, não cria ajuste e não conecta ao banco do usuário. Os testes comparam todo o snapshot antes e depois da conferência.
+
+### Etapa 14 — subcategorias e agrupamento de orçamentos
+
+Categorias recebem `parentId` opcional, criação de subcategoria e organização com prévia/confirmação. Validação impede ciclos, natureza incompatível e categoria ativa sob grupo arquivado. IDs e lançamentos são preservados ao mover um grupo; o usuário é informado da reinterpretação do histórico. Orçamentos agregam descendentes sem duplicar lançamentos, enquanto o dashboard mantém a distribuição direta. Seletores, relatórios e assistente usam o caminho completo; nomes ambíguos no assistente são recusados.
+
+### Etapa 15 — lembretes de backup
+
+Lembretes locais configuráveis de 7/14/30 dias, com adiamento de 24 horas e detecção de alterações no estado completo. A marca registra somente **download solicitado**, sem afirmar que o arquivo foi salvo ou que existe uma cópia recuperável. Configuração guarda data e assinatura, sem nomes, lançamentos ou senha. Falha desse armazenamento não bloqueia o aplicativo. Restauração reinicia o acompanhamento sem fingir novo backup; exclusão financeira limpa a marca, preservando preferências. Avisos não aparecem no relatório impresso.
+
+### Migração e validação
+
+Esquema IndexedDB 4 adiciona o índice de grupo das categorias, sem novas tabelas financeiras. Migrações dos esquemas 1/2/3 preservam histórico e recibos idempotentes. Backups novos têm envelope v4; leitura de v2/v3 permanece, com validação explícita das compras legadas antes de derivar parcelas. O envelope criptografado permanece v1. Código antigo não deve ser recolocado sobre um banco atualizado sem avaliar compatibilidade.
+
+- `npm run check`: 167 testes aprovados, TypeScript e build aprovados.
+- `npm run test:browser`: 20 testes aprovados em Chromium desktop e viewport móvel.
+- `npm exec -- playwright test --config playwright.production.config.ts`: 30 testes aprovados; inclui os novos fluxos e as regressões de offline, recuperação, impressão e estornos.
+- `npm run test:pages`: dois testes aprovados no caminho `/anyx/`, com recarga e escrita offline.
+- Total: 219 testes aprovados. Capturas de conferência/importação foram inspecionadas; os fluxos novos verificam a largura da tela móvel. Não equivale a teste em dispositivo físico ou em todos os navegadores.
+- `npm audit --audit-level=moderate`: zero vulnerabilidades conhecidas. Nenhuma dependência adicionada.
+
+Estorno comercial de cartão continua sem implementação. O plano `PLANO-ESTORNOS-CARTAO.md` especifica devolução compartilhada, crédito em cartão e valores a devolver a terceiros antes de expor qualquer ação financeira. Isso evita tratar devolução como renda ou apagar reembolsos já recebidos.

@@ -20,7 +20,7 @@ function AssistantContent({ state }: { state: State }) {
     setDialog({ title: 'Revisar lançamento do assistente', help: 'Nenhum registro foi salvo. Confira os dados e confirme somente um fato já realizado.', fields: [
       { name: 'description', label: 'Descrição', value: String(command.description) }, { name: 'amount', label: 'Valor (R$)', type: 'money', value: inputMoney(Number(command.amount)) },
       { name: 'date', label: 'Data', type: 'date', value: String(command.date), max: today() }, { name: 'accountId', label: 'Conta', type: 'select', options: options(state.accounts.filter(item => !item.archived)), value: String(command.accountId) },
-      { name: 'categoryId', label: 'Categoria', type: 'select', options: options(state.categories.filter(item => !item.archived && item.kind === command.type)), value: String(command.categoryId) },
+      { name: 'categoryId', label: 'Categoria', type: 'select', options: options(state.categories.filter(item => !item.archived && item.kind === command.type), state.categories), value: String(command.categoryId) },
       ...(command.type === 'income' ? [{ name: 'sourceId', label: 'Fonte de receita', type: 'select' as const, options: options(state.sources.filter(item => !item.archived)), value: String(command.sourceId) }] : []),
     ], build: values => ({ ...values, type: command.type }) });
   }

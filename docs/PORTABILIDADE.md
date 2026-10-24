@@ -4,7 +4,7 @@
 
 Em **Relatórios e backup**, escolha exportar com senha (padrão) ou desative explicitamente a criptografia. O arquivo inclui todas as tabelas, lançamentos, relações e recibos de idempotência.
 
-Formato JSON atual `dexfin`, versão 3, com `exportedAt` UTC e `state`. Todas as tabelas atuais são obrigatórias. O leitor também aceita o envelope v2 e adapta estados legados sem trocar IDs; parcelas únicas antigas são derivadas da compra original. Versões desconhecidas são rejeitadas. Estornos de correção exigem envelope v3, que a versão 0.8 do aplicativo não lê. O envelope criptografado continua na versão 1 e protege o JSON interno atual.
+Formato JSON atual `dexfin`, versão 4, com `exportedAt` UTC e `state`. Todas as tabelas atuais são obrigatórias. O leitor também aceita os envelopes v2/v3 e adapta estados legados quando necessário sem trocar IDs; parcelas únicas antigas são derivadas da compra original. Versões desconhecidas são rejeitadas. Estornos de correção exigem v3 ou posterior; subcategorias exigem v4. Leitores antigos não entendem os novos formatos. O envelope criptografado continua na versão 1 e protege o JSON interno atual.
 
 Formato protegido `dexfin-encrypted`, versão 1: PBKDF2-SHA-256 com 310.000 iterações, salt aleatório de 16 bytes, chave AES-GCM de 256 bits e IV aleatório de 12 bytes. A chave não é extraível; salt/IV e ciphertext ficam no envelope. A senha não é gravada. Perda da senha significa perda do acesso a esse backup. Integridade autenticada detecta senha incorreta ou ciphertext alterado; um backup JSON sem proteção não é prova de autenticidade contra alteração intencional.
 
@@ -40,6 +40,7 @@ Relacionamentos principais:
 
 | Origem | Destino | Relação |
 | --- | --- | --- |
+| categories.parentId | categories.id | Grupo pai opcional, sem ciclos e da mesma natureza |
 | entries.operationId | operations.id | Vários lançamentos por operação |
 | operations.relatedId, quando kind = reversal | operations.id | Estorno integral ligado ao original |
 | contributions.cancelledById | operations.id | Estorno que cancelou a contribuição pendente, quando preenchido |
@@ -66,7 +67,7 @@ Arrays, quando presentes (como `sourceIds`), são JSON textual e podem ser expan
 
 ## Importação CSV DexFin v1
 
-O importador é um adaptador explícito para receitas/despesas realizadas, não um importador bancário universal. OFX permanece planejado, sem conexão simulada. Use **Baixar modelo de importação** ou mapeie suas colunas para:
+O importador é um adaptador explícito para receitas/despesas realizadas, não um importador bancário universal. O adaptador OFX bancário está descrito a seguir; não há conexão bancária automática. Use **Baixar modelo de importação** ou mapeie suas colunas para:
 
 ```text
 externalId;date;type;description;amount;accountId;categoryId;sourceId
@@ -88,3 +89,13 @@ Até 5.000 registros e 20 MiB; CSV com aspas, ponto e vírgula e quebras de linh
 ## PDF
 
 Escolha o mês em **Relatório financeiro** e use **Imprimir / salvar PDF**. A impressão contém fluxos do período, estoques atuais explicitamente identificados e o histórico selecionado. O PDF é produzido pela opção Salvar como PDF do navegador, não por um serviço externo. O estilo de impressão remove menus e controles.
+
+## OFX bancário BRL
+
+Aceita uma única conta `CHECKING`, `SAVINGS` ou `CASHMGMT`, com moeda BRL, em SGML OFX 1.x ou XML OFX 2.x no subconjunto validado. Codificações aceitas: UTF-8 e Windows-1252 (incluindo declarações compatíveis). Limites: 20 MiB, cabeçalho de até 4 KiB e 1–5.000 lançamentos. Datas são civis a partir de DTPOSTED, valores são convertidos de texto decimal do banco para centavos com aritmética inteira e FITID é obrigatório.
+
+Cartões/investimentos, múltiplas contas, câmbio/moeda por lançamento, correções `CORRECTFITID`, documentos comprimidos/protegidos, DTD e entidades personalizadas são rejeitados. O parser não acessa rede nem resolve conteúdo externo. Ele não afirma aceitar todos os arquivos produzidos por todos os bancos.
+
+Conta destino e classificação precisam de revisão explícita. Lançamentos especiais (incluindo destinos BANKACCTTO/CCACCTTO) permanecem pendentes; só receitas/despesas realmente selecionadas entram no lote. Ignorar um lançamento não grava um fato financeiro. A chave deriva de conta DexFin+FITID e não depende da categoria escolhida; arquivo repetido não duplica, e conteúdo/classificação diferente para a mesma chave gera conflito. Não há deduplicação entre OFX, CSV e registros manuais.
+
+A prévia simula todas as linhas selecionadas antes da confirmação. A gravação usa uma transação externa e conserva recibos de idempotência; falha posterior não deixa importação parcial. Transferências, faturas, reembolsos e estornos devem ser registrados nos seus fluxos próprios para preservar a natureza financeira.

@@ -26,7 +26,7 @@ describe('Repositório IndexedDB e unidade de trabalho', () => {
     try {
       expect(summary(await new IndexedDbFinanceRepository(blank).read())).toMatchObject({ cash: 0, income: 0, expenses: 0 });
       expect((await new IndexedDbFinanceRepository(blank).read()).accounts).toEqual([]);
-      expect(blank.verno).toBe(3);
+      expect(blank.verno).toBe(4);
     } finally { await blank.delete(); }
   });
 

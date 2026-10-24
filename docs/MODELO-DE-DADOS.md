@@ -1,4 +1,4 @@
-# Modelo de dados — esquema 3 (com histórico das bases v1/v2)
+# Modelo de dados — esquema 4 (com histórico das bases v1/v2/v3)
 
 Todos os registros possuem `id` UUID e `createdAt` UTC. Datas financeiras e vencimentos são strings civis ISO `YYYY-MM-DD`. Valores são inteiros seguros em centavos BRL; percentuais são inteiros em pontos-base (750 = 7,5%).
 
@@ -58,7 +58,7 @@ Novos comandos: `updateAccount` altera somente nome/instituição/tipo; `renameC
 
 ## Esquema 2 — tabelas e naturezas adicionadas nas etapas 5–8
 
-Este trecho atualiza as limitações históricas descritas para a versão 1: parcelas, previsões, orçamentos, metas, investimentos e empréstimos já existem. Subcategorias, estornos de outros módulos e conciliação permanecem pendentes. A correção de receitas/despesas/transferências está descrita no esquema 3 abaixo.
+Este trecho atualiza as limitações históricas descritas para a versão 1: parcelas, previsões, orçamentos, metas, investimentos e empréstimos já existem. Subcategorias foram adicionadas no esquema 4; a conferência manual é uma consulta sem registros próprios. Estornos de outros módulos e conciliação automática permanecem pendentes. A correção de receitas/despesas/transferências está descrita no esquema 3 abaixo.
 
 | Tabela | Modelo e relacionamentos |
 | --- | --- |
@@ -93,3 +93,11 @@ A migração v2→v3 acrescenta o índice não único `operations.relatedId`; n�
 - A previsão realizada mantém `operationId`; sua situação de realização estornada é derivada do vínculo no histórico. Não é reaberta automaticamente.
 
 Os comandos `reverseMovement` contêm chave, operação original e motivo. Não aceitam valor ou data arbitrários. Recibo idempotente, operação, entradas e cancelamentos são gravados atomicamente. O backup JSON passa ao envelope v3, preservando leitura dos v2; leitores antigos não compreendem o novo tipo financeiro.
+
+## Esquema 4 — hierarquia de categorias
+
+A categoria passa a aceitar `parentId` opcional, referenciando outra categoria da mesma natureza. A migração v3→v4 acrescenta esse índice sem alterar IDs, datas ou entradas. Ausência do campo representa categoria principal. Ciclos, auto-referência, grupo inexistente e filho ativo sob grupo arquivado são recusados antes/depois da unidade de trabalho.
+
+`createCategory` aceita o grupo opcional. `setCategoryParent` recebe categoria e UUID do grupo, ou null para remover o grupo. O histórico financeiro continua vinculado ao mesmo ID; os caminhos e a agregação atual são derivados dos metadados. O backup v4 preserva parentId e o CSV de categorias inclui a coluna para relacionamento no Power BI.
+
+OFX usa os mesmos comandos/recibos financeiros, sem tabela financeira paralela. Conferência de saldo é consulta transitória. Preferências e rastreio do lembrete de backup são metadados locais fora das tabelas financeiras, sem nomes/valores/senhas, e não entram no backup restaurável.

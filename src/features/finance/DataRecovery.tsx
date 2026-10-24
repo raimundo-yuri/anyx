@@ -1,3 +1,4 @@
+import { markBackupRestored } from '../../application/backup-status';
 import { useRef, useState } from 'react';
 import type { State } from '../../domain/model';
 import { summary } from '../../domain/queries';
@@ -47,7 +48,7 @@ export function DataRecovery({ onRecovered }: { onRecovered: () => void }) {
         }}>Baixar cópia de diagnóstico</button>
         <label className={styles.checkbox}><input type="checkbox" checked={confirm} onChange={event => setConfirm(event.target.checked)} />Guardei a cópia de diagnóstico e entendo que o backup substituirá todos os dados locais.</label>
         <button className={styles.primary} disabled={!confirm || !copied} onClick={() => void action(async () => {
-          await localRepository.recover(preview.state, preview.snapshot);
+          await localRepository.recover(preview.state, preview.snapshot); markBackupRestored();
           setPassword(''); reset(); onRecovered();
         })}>Confirmar recuperação</button>
       </>}

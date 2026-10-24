@@ -2,6 +2,7 @@ import { FinanceError } from './errors';
 import { isReversibleMovement, stateSchema, tableNames, type Entry, type State } from './model';
 import { balance, reserved, reversalFor, summary } from './queries';
 import { sum } from './money';
+import { assertCategoryHierarchy } from './categories';
 
 export function requireRecord<T extends { id: string }>(records: readonly T[], id: string, label: string): T {
   const record = records.find(item => item.id === id);
@@ -14,6 +15,7 @@ export function ensure(condition: unknown, message: string): asserts condition {
 /** Validate both data shapes and cross-table constraints before/after every unit of work. */
 export function assertState(input: State): void {
   stateSchema.parse(input);
+  assertCategoryHierarchy(input.categories);
   for (const table of tableNames) ensure(new Set(input[table].map(item => item.id)).size === input[table].length, `Identificador duplicado em ${table}.`);
   const reversedIds = new Set<string>();
   for (const operation of input.operations) {

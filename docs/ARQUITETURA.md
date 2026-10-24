@@ -1,4 +1,4 @@
-# Arquitetura — versão 0.9.1
+# Arquitetura — versão 0.10.0
 
 Aplicação local React/TypeScript/Vite, CSS Modules e IndexedDB/Dexie. Não há backend, serviço bancário ou provedor de IA externa. Gráficos usam SVG e tabelas acessíveis, sem uma dependência adicional. O build usa chunks por seção e um vendor separado.
 
@@ -33,7 +33,7 @@ Transações de escrita em tabelas compartilhadas são serializadas, inclusive e
 
 ## Persistência e migração
 
-Banco `dexfin`, esquema 3. O esquema 1 continua declarado; a atualização cria novas tabelas e deriva uma parcela para cada compra antiga sem mudar IDs, operações ou recibos. Compras novas geram todas as parcelas explícitas. Snapshots legados de backup também recebem essa adaptação. A migração v2→v3 adiciona o índice `operations.relatedId`, preservando registros e IDs. A operação `reversal` liga a correção ao original, e `contributions.cancelledById` registra os cancelamentos decorrentes. Backups novos usam envelope v3 estrito; o leitor adapta os v2. Bancos não são apagados/recriados automaticamente.
+Banco `dexfin`, esquema 4. O esquema 1 continua declarado; a atualização cria novas tabelas e deriva uma parcela para cada compra antiga sem mudar IDs, operações ou recibos. Compras novas geram todas as parcelas explícitas. Snapshots legados de backup também recebem essa adaptação. A migração v2→v3 adiciona o índice `operations.relatedId`, preservando registros e IDs. A operação `reversal` liga a correção ao original, e `contributions.cancelledById` registra os cancelamentos decorrentes. A migração v3→v4 adiciona o índice categories.parentId sem reescrever o histórico. Backups novos usam envelope v4 estrito; o leitor aceita v2/v3 e adapta o legado quando necessário. Bancos não são apagados/recriados automaticamente.
 
 A validação do estado completo favorece integridade, mas seu custo cresce com o histórico. O adaptador deve ser medido e otimizado antes de uso com grande volume. A interface de repositório permite outro adaptador, mas autenticação/autorização multiusuário e resolução de conflitos não são fornecidas por essa abstração.
 
@@ -52,3 +52,11 @@ Não há skipWaiting automático em atualização. A UI oferece aplicação manu
 ## Validação atual
 
 Testes de domínio/persistência/interface, migração e recuperação; navegação no Chromium desktop/viewport móvel; produção com offline, PDF, exclusão, recuperação e nomes importados como texto. O cenário de atualização entrega uma notificação de controlador à página controlada e verifica a preservação do modal. Contagens e resultados executados constam em PROGRESSO.md. Fixtures são sintéticas e isoladas. Não é validação em Android físico, Safari ou Firefox, nem auditoria externa de segurança.
+
+## Evoluções da versão 0.10
+
+`domain/categories.ts` valida hierarquia e calcula caminhos/descendentes. Orçamentos usam descendentes únicos; o dashboard contabiliza cada referência direta uma vez. Organização muda metadados, sem reescrever entradas financeiras. O assistente distingue ausência de correspondência de caminho ambíguo.
+
+`application/reconciliation.ts` é leitura pura de caixa por conta até um corte civil. A UI de conferência não salva sessões nem posta ajustes. `portability/ofx.ts` decodifica/valida o subconjunto OFX e simula comandos; `OfxImport` exige conta/classificação/prévia/confirmação e usa executeBatch para atomicidade.
+
+`application/backup-status.ts` registra metadados de lembrete em localStorage. A assinatura canônica cobre todas as tabelas, inclusive edições de cadastro; falha de metadados é independente do sucesso financeiro. Um banner observa o estado e descarta cálculos antigos; a configuração em Reports não abre outro observador financeiro. Downloads, restaurações e exclusão chamam APIs de rastreio depois da ação correspondente.

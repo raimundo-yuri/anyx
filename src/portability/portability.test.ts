@@ -45,12 +45,12 @@ describe('Backup versionado e criptografia', () => {
     expect(restored.installments).toHaveLength(1); expect(restored.installments[0].purchaseId).toBe(f.state.purchases[0].id);
     expect(summary(restored)).toEqual(summary(f.state));
   });
-  it('formato v3 preserva estorno e idempotência, mantendo leitura dos backups v2', async () => {
+  it('formato atual preserva estorno e idempotência, mantendo leitura dos backups v2', async () => {
     const f = fixture(), legacy = JSON.parse(plainBackup(f.state)); legacy.version = 2;
     expect(await readBackup(JSON.stringify(legacy))).toEqual(f.state);
     const { resultId } = f.run({ type: 'expense', accountId: f.ids.account, categoryId: f.ids.expense, amount: 1250, date: today, description: 'Duplicada' });
     f.run({ type: 'reverseMovement', operationId: resultId, reason: 'Registro duplicado' });
-    const backup = plainBackup(f.state); expect(JSON.parse(backup).version).toBe(3);
+    const backup = plainBackup(f.state); expect(JSON.parse(backup).version).toBe(4);
     expect(await readBackup(backup)).toEqual(f.state);
     expect(await readBackup(await encryptedBackup(f.state, 'senha de teste 123'), 'senha de teste 123')).toEqual(f.state);
     await expect(readBackup(JSON.stringify({ ...JSON.parse(backup), version: 2 }))).rejects.toThrow(/versão 3/);
@@ -63,6 +63,11 @@ describe('Backup versionado e criptografia', () => {
     await expect(readBackup(JSON.stringify(backup))).rejects.toThrow(/incompatível/);
     const truncated = JSON.parse(plainBackup(f.state)); delete truncated.state.goals;
     await expect(readBackup(JSON.stringify(truncated))).rejects.toThrow();
+  });
+  it('identifica compra malformada em backup legado como entrada inválida', async () => {
+    const backup = JSON.parse(plainBackup(fixture().state)); backup.version = 2;
+    delete backup.state.installments; backup.state.purchases = [null];
+    await expect(readBackup(JSON.stringify(backup))).rejects.toMatchObject({ name: 'ZodError' });
   });
 });
 

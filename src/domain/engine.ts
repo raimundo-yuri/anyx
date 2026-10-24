@@ -63,6 +63,11 @@ export function execute(input: State, raw: unknown, context: Context): Execution
   };
   let resultId = command.key;
   switch (command.type) {
+    case 'setCategoryParent': {
+      const item = record(state.categories, command.id, 'Categoria');
+      if (command.parentId) item.parentId = command.parentId; else delete item.parentId;
+      item.updatedAt = context.now; resultId = item.id; break;
+    }
     case 'reverseMovement': {
       const original = record(state.operations, command.operationId, 'Lançamento original');
       ensure(isReversibleMovement(original.kind), 'O estorno de correção está disponível para receitas, despesas e transferências.');
@@ -141,7 +146,7 @@ export function execute(input: State, raw: unknown, context: Context): Execution
       break;
     }
     case 'createCategory':
-      state.categories.push({ ...namedMeta(command.id), name: command.name, kind: command.kind }); resultId = command.id; break;
+      state.categories.push({ ...namedMeta(command.id), name: command.name, kind: command.kind, ...(command.parentId ? { parentId: command.parentId } : {}) }); resultId = command.id; break;
     case 'createPerson':
       state.people.push({ ...namedMeta(command.id), name: command.name }); resultId = command.id; break;
     case 'createSource':

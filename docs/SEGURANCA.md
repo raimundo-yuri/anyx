@@ -1,4 +1,4 @@
-# Segurança e privacidade — revisão interna da versão 0.9.1
+# Segurança e privacidade — revisão interna da versão 0.10.0
 
 ## Ameaças e controles
 
@@ -20,7 +20,7 @@ Não há backend, analytics, scripts/fontes externos, acesso bancário ou IA ext
 
 Receitas, despesas e transferências admitem estorno integral com motivo, prévia e confirmação. O original é preservado, e as entradas inversas precisam corresponder exatamente a referências, categorias e centavos. A unicidade por original é verificada na transação serializada, além da chave idempotente. Cancelamentos de contribuição apontam para o estorno correspondente; valores pagos permanecem registrados.
 
-Migrações v1/v2→v3 preservam dados. Backups novos usam envelope v3 estrito e o leitor mantém compatibilidade com v2. Isso não cria uma trilha criptográfica inviolável: quem controla o perfil pode modificar o armazenamento. A confirmação do operador pode estar errada; não há validação bancária automática.
+Migrações v1/v2/v3→v4 preservam dados. Backups novos usam envelope v4 estrito e o leitor mantém compatibilidade com v2/v3. Isso não cria uma trilha criptográfica inviolável: quem controla o perfil pode modificar o armazenamento. A confirmação do operador pode estar errada; não há validação bancária automática.
 
 ## Backup e exclusão
 
@@ -50,3 +50,13 @@ O build foi exercitado com IndexedDB nativo e CSP, incluindo texto HTML importad
 Não foram encontrados usos de HTML arbitrário, eval, armazenamento de senha em localStorage/sessionStorage ou serviços externos no código de aplicação revisado. A busca estática auxilia a revisão e não prova ausência de vulnerabilidades. Os registros de validação estão em PROGRESSO.md.
 
 Não se afirma auditoria externa, segurança comercial/multiusuário, cobertura contra todas as falhas ou suporte já validado em todos os navegadores. A configuração HTTP de uma futura hospedagem precisa ser validada no destino; consulte INSTALACAO-E-MANUTENCAO.md.
+
+## Importação OFX, conferência e lembretes — versão 0.10
+
+O parser OFX trabalha localmente, com limites de arquivo/cabeçalho/linhas/estrutura, sem resolver DTD ou entidades externas. O adaptador aceita apenas o subconjunto bancário BRL documentado e recusa formatos/correções incompatíveis. Movimentos ambíguos exigem decisão individual; a conta é confirmada pelo operador. Prévia, lote transacional e idempotência por conta+FITID protegem contra escrita parcial e repetição, sem prometer deduplicar CSV/manual por semelhança.
+
+A conferência com extrato é somente cálculo/lista de revisão, sem acesso ao banco, persistência dos valores digitados ou criação automática de ajuste. As subcategorias têm validação de ciclos, referências, natureza e arquivamento; mover grupos muda a organização de relatórios e exige revisão dos orçamentos.
+
+O lembrete de backup guarda no localStorage apenas preferências, instantes e SHA-256 canônico do estado. Não grava nomes, senhas ou registros financeiros nesse mecanismo e não envia conteúdo à rede. Ele registra solicitação de download, sem garantir que o navegador guardou o arquivo. Falha de armazenamento desses metadados não bloqueia operações ou exportações. Os metadados não estão no backup financeiro; restauração/exclusão reiniciam o rastreio sem criar uma cópia falsa.
+
+As revisões desta etapa corrigiram ambiguidade de caminhos no assistente, vazamento do banner no relatório impresso e erro de tipagem de entrada em backup legado malformado. Não equivalem a auditoria externa nem a proteção contra quem controla o perfil do navegador.

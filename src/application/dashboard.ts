@@ -3,6 +3,7 @@ import { summary, balance } from '../domain/queries';
 import { sum } from '../domain/money';
 import { daysInMonth } from '../domain/dates';
 import { FinanceError } from '../domain/errors';
+import { categoryPath } from '../domain/categories';
 export function monthRange(month: string) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new FinanceError('Selecione um mês válido.');
   const [year, number] = month.split('-').map(Number);
@@ -11,7 +12,7 @@ export function monthRange(month: string) {
 export function dashboardData(state: State, month: string) {
   const range = monthRange(month);
   const ids = new Set(state.operations.filter(op => op.date >= range.from && op.date <= range.to).map(op => op.id));
-  const categories = state.categories.filter(item => item.kind === 'expense').map(category => ({ id: category.id, name: category.name, amount: sum(state.entries.filter(entry => entry.ledger === 'expense' && entry.referenceId === category.id && ids.has(entry.operationId)).map(entry => entry.side === 'debit' ? entry.amount : -entry.amount)) })).filter(item => item.amount > 0).sort((a, b) => b.amount - a.amount);
+  const categories = state.categories.filter(item => item.kind === 'expense').map(category => ({ id: category.id, name: categoryPath(state.categories, category.id), amount: sum(state.entries.filter(entry => entry.ledger === 'expense' && entry.referenceId === category.id && ids.has(entry.operationId)).map(entry => entry.side === 'debit' ? entry.amount : -entry.amount)) })).filter(item => item.amount > 0).sort((a, b) => b.amount - a.amount);
   const [year, number] = month.split('-').map(Number);
   const trend = Array.from({ length: 6 }, (_, index) => {
     const cursor = new Date(Date.UTC(year, number - 6 + index, 1));

@@ -1,4 +1,4 @@
-# Como usar — versão 0.9.1
+# Como usar — versão 0.10.0
 
 O DexFin é local. Seus dados pertencem ao perfil e à origem do navegador; não há conta externa, integração bancária ou sincronização. Faça backups: limpar os dados do site, mudar porta/perfil ou perder o dispositivo pode retirar o acesso aos registros.
 
@@ -10,6 +10,20 @@ O DexFin é local. Seus dados pertencem ao perfil e à origem do navegador; não
 4. Busque no histórico, filtre tipo/conta/período ou use **Ver extrato** na conta. Filtros não alteram saldos atuais. No celular, os valores permanecem visíveis sem rolagem lateral.
 
 Editar conta altera somente nome/instituição/tipo, não saldo inicial ou lançamentos. Conta só pode ser arquivada com saldo zero. **Mostrar arquivadas** permite reativar. Para fatos futuros, use Planejamento; para compras no cartão, use a seção de cartões. Receitas, despesas e transferências registradas por engano podem ser corrigidas por estorno integral, conforme a seção seguinte.
+
+## Subcategorias e grupos
+
+Em **Categorias e fontes**, use **Nova subcategoria**, informe nome, natureza e grupo ativo, confira o caminho e confirme. **Organizar grupos** move uma categoria ou a deixa sem grupo; seus filhos acompanham a mudança. Não é permitido formar ciclos ou misturar receita e despesa.
+
+Os seletores mostram o caminho completo, por exemplo **Alimentação / Restaurantes**. Orçamento do grupo inclui suas subcategorias; o dashboard lista o consumo direto de cada categoria sem somar pai e filho duas vezes. Mover um grupo altera a organização dos relatórios existentes, preservando os lançamentos e os valores. Confira os orçamentos ao reorganizar. Arquive primeiro os filhos antes de arquivar um grupo; reative o grupo antes de reativar os filhos.
+
+O assistente aceita o caminho completo ou um nome simples não ambíguo. Nomes/caminhos iguais exigem esclarecimento; personalize os nomes para distingui-los.
+
+## Conferir saldo com o extrato
+
+Em **Contas e saldos**, escolha **Conferir saldo** na conta. Informe a data de corte e o saldo final que aparece no extrato. A diferença é **extrato − calculado**; a lista mostra os lançamentos de caixa daquela conta até o corte, incluindo o lado correto de transferências e estornos.
+
+A comparação não altera o saldo, não cria receita/despesa e não acessa o banco. Valores digitados e a comparação não ficam salvos ao fechar. Uma coincidência de saldos não prova que todos os lançamentos estejam corretos; diferenças de mesmo valor podem se compensar. Confira saldo inicial, registros faltantes, duplicados e datas antes de corrigir os fatos pelo fluxo apropriado.
 
 ## Corrigir um lançamento com estorno
 
@@ -81,7 +95,17 @@ Use **Relatórios e backup** para CSV por tabela, backup com senha, prévia/rest
 
 Se o banco inconsistente impedir carregar as telas, use **Abrir recuperação de dados**, valide um backup, baixe a cópia de diagnóstico e confirme a substituição. A cópia contém dados legíveis e não é um backup restaurável. O aplicativo recarrega após recuperar. Veja [PORTABILIDADE.md](PORTABILIDADE.md).
 
+Em **Relatórios e backup → Lembretes de backup**, escolha 7, 14 ou 30 dias e ative/desative o aviso. Você pode adiá-lo por 24 horas. O lembrete considera cadastros, planejamento e todo o estado financeiro; sem mudanças não insiste em gerar uma cópia igual. O registro é de **download solicitado**, não prova de arquivo guardado. Confira o arquivo na pasta de downloads e proteja-o junto com a senha. Restauração não conta como nova exportação; o aviso é adiado por 24 horas. As preferências são locais e não vão dentro do backup financeiro.
+
 Em **Privacidade**, solicite armazenamento persistente quando o navegador permitir. Isso não substitui backup. Excluir todos os registros exige digitar APAGAR e não remove cópias externas.
+
+## Importar extrato OFX bancário
+
+Em **Relatórios e backup → Importar extrato OFX**, selecione um arquivo de conta bancária BRL, escolha a conta correspondente e confirme que conferiu a identificação do extrato. Defina categorias/fontes e classifique os lançamentos. **Classificar lançamentos comuns pendentes** usa as escolhas padrão apenas nos movimentos considerados comuns; transferências, PIX e outros movimentos especiais continuam pendentes para sua decisão.
+
+Revise cada lançamento pendente. Transferências entre contas próprias, pagamento de fatura, reembolso e estorno precisam de seus fluxos específicos: ignore-os neste adaptador e registre nas seções apropriadas. Não transforme esses movimentos em renda/consumo só para concluir a importação. Você também pode ignorar explicitamente todos os pendentes.
+
+Use **Validar e visualizar importação OFX**, revise a conta e os valores e confirme. O lote é atômico. Repetir conta+FITID reconhece duplicatas; mudar a classificação de um FITID já importado gera conflito. Corrija o original pelo fluxo apropriado; não invente outro ID para forçar a importação. O adaptador não identifica equivalência com CSV ou lançamentos manuais, então confira para evitar registrar o mesmo fato por dois caminhos. Consulte PORTABILIDADE.md para o subconjunto e limites aceitos.
 
 ## Offline
 
@@ -89,4 +113,4 @@ A PWA funciona no build de produção, após a primeira carga completa conectada
 
 ## Limitações
 
-Sem Open Finance/sincronização, OFX/XLSX, anexos, subcategorias, conciliação, estornos parciais/comerciais ou de outros módulos, renegociações, edição financeira no original, amortização automática ou controles fiscais de investimentos. O banco local não é criptografado; o backup pode ser. Consulte [instalação e manutenção](INSTALACAO-E-MANUTENCAO.md) para primeiros passos, atualização e recuperação.
+Sem Open Finance/sincronização, XLSX, anexos, conciliação automática ou sessões de conferência salvas, estornos parciais/comerciais ou de outros módulos, renegociações, edição financeira no original, amortização automática ou controles fiscais de investimentos. O banco local não é criptografado; o backup pode ser. Consulte [instalação e manutenção](INSTALACAO-E-MANUTENCAO.md) para primeiros passos, atualização e recuperação.

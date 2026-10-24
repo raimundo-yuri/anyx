@@ -1,6 +1,6 @@
-# Instalação, primeiros passos e manutenção — 0.9.1
+# Instalação, primeiros passos e manutenção — 0.10.0
 
-O DexFin está preparado para uso pessoal local no navegador. O código está no GitHub; a publicação web depende da ativação inicial do Pages descrita abaixo. O endereço previsto para computador e celular é https://raimundo-yuri.github.io/anyx/. Não há cadastro externo, serviço pago ou credencial bancária a configurar. O ambiente de desenvolvimento já preparado pode continuar sendo usado; publicar configurações desse ambiente não publica o aplicativo nem transfere os registros do navegador.
+O DexFin está preparado para uso pessoal local no navegador. A publicação no GitHub Pages já está ativa em https://raimundo-yuri.github.io/anyx/ para computador e celular. Não há nova ativação a cada versão. Não há cadastro externo, serviço pago ou credencial bancária a configurar. O ambiente de desenvolvimento já preparado pode continuar sendo usado; publicar configurações desse ambiente não publica o aplicativo nem transfere os registros do navegador.
 
 ## Executar em outro computador
 
@@ -35,7 +35,7 @@ Não é necessário criar `.env` para usar os padrões. Para personalizar, copie
 
 Se registrar uma receita, despesa ou transferência por engano, use **Movimentações → Estornar**, revise os efeitos e confirme com um motivo. Depois registre os dados corretos, se necessário. O original permanece no histórico.
 
-A atualização para 0.9 usa o esquema local 3 e backups v3. Faça um backup antes de atualizar e recarregue outras abas antigas; a versão 0.8 não entende os novos estornos nem os backups v3. Não retorne o código antigo sobre um banco já atualizado sem avaliar compatibilidade.
+A atualização para 0.10 usa esquema local 4 e backups v4, preservando leitura de backups v2/v3. Faça um backup antes de atualizar e feche formulários/abas antigas; versões anteriores não entendem subcategorias ou o esquema novo. Não retorne código antigo sobre um banco atualizado sem avaliar compatibilidade.
 
 O [guia de uso](USO.md) explica contribuições, parcelas, recebíveis, previsões, metas, empréstimos e investimentos. A tela inicial fica vazia até você cadastrar dados reais.
 
@@ -43,7 +43,7 @@ Mantenha a mesma origem e perfil: protocolo, domínio e porta identificam o arma
 
 ## Usar a publicação no GitHub Pages
 
-Ative inicialmente **GitHub → Settings → Pages → Build and deployment → Source → GitHub Actions**. Em **Actions → Publicar DexFin no GitHub Pages**, use **Run workflow** com a branch `main`. Após a execução concluir com sucesso, abra https://raimundo-yuri.github.io/anyx/ no navegador. Para Android, use a opção de instalar o app oferecida pelo navegador; no Safari do iPhone, Compartilhar → Adicionar à Tela de Início. O site pode ser testado sem instalação. Aguarde a indicação de disponibilidade offline antes de testar sem rede.
+Abra https://raimundo-yuri.github.io/anyx/ no navegador. O GitHub Pages já foi ativado pelo proprietário; envios para `main` executam testes/build e publicam automaticamente. Se precisar repetir uma publicação válida, use **Actions → Publicar DexFin no GitHub Pages → Run workflow** com a branch `main`. Uma execução só deve ser considerada publicada quando concluir com sucesso e o endereço tiver sido verificado. Para Android, use a opção de instalar o app oferecida pelo navegador; no Safari do iPhone, Compartilhar → Adicionar à Tela de Início. O site pode ser testado sem instalação. Aguarde a indicação de disponibilidade offline antes de testar sem rede.
 
 O fluxo `.github/workflows/pages.yml` é acionado por envios para `main` ou manualmente em GitHub → Actions. Ele usa Node 24, `npm ci`, os testes, o build com o caminho do Pages e o artefato estático. Credenciais temporárias de publicação são fornecidas pelo GitHub; nenhum segredo é incorporado ao app.
 
@@ -102,9 +102,9 @@ Para distribuir um arquivo no ambiente Linux, após validar o build:
 
 ```sh
 mkdir -p releases
-tar -czf releases/dexfin-0.9.1-web.tar.gz -C dist . -C .. LICENSE docs/LICENCAS-TERCEIROS.txt
-(cd releases && sha256sum dexfin-0.9.1-web.tar.gz > dexfin-0.9.1-web.tar.gz.sha256)
-(cd releases && sha256sum -c dexfin-0.9.1-web.tar.gz.sha256)
+tar -czf releases/dexfin-0.10.0-web.tar.gz -C dist . -C .. LICENSE docs/LICENCAS-TERCEIROS.txt
+(cd releases && sha256sum dexfin-0.10.0-web.tar.gz > dexfin-0.10.0-web.tar.gz.sha256)
+(cd releases && sha256sum -c dexfin-0.10.0-web.tar.gz.sha256)
 ```
 
 O arquivo contém o site estático e as licenças de distribuição, sem incluir o IndexedDB do navegador. O checksum detecta alterações em relação ao arquivo original recebido; sozinho não autentica a origem. Preserve também o código-fonte/lockfile da versão para manutenção.
@@ -118,3 +118,9 @@ O arquivo contém o site estático e as licenças de distribuição, sem incluir
 - **Offline indisponível:** conecte-se e aguarde a indicação de disponibilidade offline antes de testar sem rede. Isso não substitui backup.
 
 Ao relatar um problema, informe versão, navegador, ação e mensagem observada. Não publique backups, senhas, diagnósticos ou histórico financeiro em issues. A cópia de diagnóstico contém dados legíveis e pode estar inconsistente; ela não deve ser importada como backup comum.
+
+## Atualizações e responsabilidades
+
+O desenvolvimento, os testes, o incremento de versão e o envio ao GitHub podem ser realizados nas rodadas desta conversa dentro do escopo autorizado. O fluxo do Pages publica o commit depois que suas verificações passam. Isso não implica trabalho de desenvolvimento em segundo plano após encerrar uma rodada.
+
+O usuário mantém suas cópias de backup, confere os lançamentos reais e aplica a atualização da PWA quando o navegador oferecer o botão, com formulários salvos/fechados. Uma nova configuração ou permissão exclusiva da conta pode exigir intervenção pontual; não é necessário reconfirmar cada melhoria gratuita já autorizada. O site pode ser instalado pelo navegador sem Play Store e sem taxa de cadastro de loja.

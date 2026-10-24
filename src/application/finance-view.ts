@@ -3,6 +3,7 @@ import { sum, cents } from '../domain/money';
 import { validDate } from '../domain/dates';
 import { FinanceError } from '../domain/errors';
 import { reversalFor } from '../domain/queries';
+import { categoryPath } from '../domain/categories';
 
 export const operationLabels: Record<Operation['kind'], string> = {
   reversal: 'Estorno de correção',
@@ -25,7 +26,7 @@ export function movementRows(state: State, filters: MovementFilters = emptyFilte
     const accountIds = cash.map(item => item.referenceId);
     const accounts = [...new Set(accountIds)].map(id => state.accounts.find(item => item.id === id)?.name ?? 'Conta');
     const categoryIds = [...new Set(entries.flatMap(item => item.categoryId ? [item.categoryId] : []))];
-    const categories = categoryIds.map(id => state.categories.find(item => item.id === id)?.name ?? 'Categoria');
+    const categories = categoryIds.map(id => categoryPath(state.categories, id));
     const debit = sum(entries.filter(item => item.side === 'debit').map(item => item.amount));
     const cashChange = sum(cash.map(item => item.side === 'debit' ? item.amount : -item.amount));
     const direction = transfer ? 'neutral' : cashChange > 0 ? 'in' : cashChange < 0 || operation.kind === 'purchase' ? 'out' : 'neutral';

@@ -1,3 +1,4 @@
+import { resetBackupTracking } from '../../application/backup-status';
 import { useState } from 'react';
 import { emptyState } from '../../domain/model';
 import { localRepository } from '../../infrastructure/database';
@@ -16,7 +17,7 @@ export function SecurityControls() {
   async function erase() {
     if (confirm !== 'APAGAR' || busy) return;
     setBusy(true); setMessage('');
-    try { const current = await localRepository.read(); await localRepository.replace(emptyState(), JSON.stringify(current)); setConfirm(''); setMessage('Registros financeiros locais excluídos. Cópias exportadas e dados de outros dispositivos não foram alterados.'); }
+    try { const current = await localRepository.read(); await localRepository.replace(emptyState(), JSON.stringify(current)); resetBackupTracking(); setConfirm(''); setMessage('Registros financeiros locais excluídos. Cópias exportadas e dados de outros dispositivos não foram alterados.'); }
     catch (error) { setMessage(userError(error)); }
     finally { setBusy(false); }
   }

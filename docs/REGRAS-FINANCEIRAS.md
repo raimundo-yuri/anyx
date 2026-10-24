@@ -57,14 +57,14 @@ O filtro de período altera os fluxos de receita/despesa; os estoques continuam 
 
 ## Limites
 
-Comandos de caixa representam fatos realizados. Previsões, orçamentos, empréstimos, investimentos e parcelamentos têm comandos próprios, descritos na atualização abaixo. Estornos de correção de receitas/despesas/transferências são implementados na evolução descrita abaixo. Estornos comerciais, de outros módulos e conciliação continuam pendentes. Não há comando de exclusão silenciosa de histórico.
+Comandos de caixa representam fatos realizados. Previsões, orçamentos, empréstimos, investimentos e parcelamentos têm comandos próprios, descritos na atualização abaixo. Estornos de correção de receitas/despesas/transferências são implementados na evolução descrita abaixo. Estornos comerciais, de outros módulos e conciliação automática continuam pendentes. A versão 0.10 permite conferir manualmente o saldo com o extrato, sem ajustar lançamentos. Não há comando de exclusão silenciosa de histórico.
 
 
 ## Registro pela interface — etapa 4
 
 Formulários de receitas e despesas representam fatos recebidos/pagos, com data até hoje no fuso America/Sao_Paulo configurado. Datas futuras são recusadas no formulário; não há transformação automática de previsão em realizado. Uma conta, uma categoria da natureza correta e, para receitas, uma fonte ativa são obrigatórias. Transferências exigem duas contas ativas distintas.
 
-O saldo inicial é informado na criação da conta e gera operação patrimonial; se for zero, não há lançamento de valor zero. A edição do cadastro não altera dinheiro. Contas devedoras são aceitas para refletir a realidade, mas não há cálculo de juros ou conciliação.
+O saldo inicial é informado na criação da conta e gera operação patrimonial; se for zero, não há lançamento de valor zero. A edição do cadastro não altera dinheiro. Contas devedoras são aceitas para refletir a realidade, mas não há cálculo de juros ou conciliação automática.
 
 Arquivar categoria/fonte preserva o passado e impede seu uso em novas operações. Arquivar conta exige saldo zero. Reativar não movimenta dinheiro. O nome editado é apresentado também nos registros vinculados por ID, mantendo valores e datas originais.
 
@@ -72,7 +72,7 @@ O extrato mostra cada operação original uma vez. A transferência aparece nos 
 
 ## Atualização das etapas 5 a 8
 
-As referências anteriores a parcelas, metas, orçamento, previsões, investimentos e empréstimos como pendentes descrevem o estado da etapa 4. Esses módulos agora têm regras e interface. Estornos comerciais/de outros módulos, renegociações e conciliação permanecem fora do escopo implementado. A correção integral de receitas/despesas/transferências foi acrescentada na versão 0.9.
+As referências anteriores a parcelas, metas, orçamento, previsões, investimentos e empréstimos como pendentes descrevem o estado da etapa 4. Esses módulos agora têm regras e interface. Estornos comerciais/de outros módulos, renegociações e conciliação automática permanecem fora do escopo implementado. A correção integral de receitas/despesas/transferências foi acrescentada na versão 0.9.
 
 ### Cartão parcelado e reembolso independente
 
@@ -115,3 +115,15 @@ Sugestões/reservas de contribuição da receita são canceladas e vinculadas ao
 A previsão realizada permanece encerrada com referência ao original e identificação derivada de realização estornada. Contas envolvidas precisam estar ativas. Reservas de metas devem continuar cobertas após a correção; se necessário, ajustar previamente. Corrigir renda incorreta pode revelar saldo negativo, que é aceito para representar a situação registrada.
 
 O estorno é único, com inversão exata conferida também ao importar backup. Falha parcial ou concorrência não duplica o ajuste. Estorno de estorno e alteração arbitrária de sua data/valor são recusados. Para corrigir os dados de um fato válido, criar um novo lançamento revisado após estornar o incorreto.
+
+## Subcategorias, extratos e conferência — versão 0.10
+
+Categorias podem pertencer a um grupo da mesma natureza. A hierarquia recusa ciclos, referências ausentes e categoria ativa sob grupo arquivado. Arquivar um grupo com descendentes ativos é recusado. Mudar o grupo preserva IDs, valores e lançamentos: reinterpreta o agrupamento de todo o histórico, com prévia e confirmação.
+
+O orçamento de uma categoria inclui o consumo de seus descendentes, cada lançamento uma única vez. Orçamentos simultâneos para grupo e subcategoria são comparações independentes e não devem ser somados como gastos distintos. A distribuição do dashboard mantém a categoria direta do lançamento para não duplicar o consumo entre pai e filho.
+
+A conferência de uma conta calcula seu caixa até a data de corte inclusive, usando os lançamentos assinados e o lado correto das transferências e estornos. A diferença é o saldo informado no extrato menos o calculado. Ela não grava uma sessão nem cria ajuste para fazer os saldos coincidirem; limite de crédito e aplicações separadas não compõem o saldo bancário a conferir.
+
+OFX importa somente receitas/despesas realizadas depois de selecionar a conta correspondente, classificar os registros, revisar a prévia e confirmar. Transferências, pagamentos de fatura, reembolsos e outros movimentos ambíguos exigem decisão individual; o importador não os converte automaticamente em renda/consumo. Importação de receitas segue as regras de contribuição vigentes. Datas anteriores à abertura da conta e demais violações do domínio impedem o lote inteiro.
+
+A identidade de importação combina a conta DexFin com o FITID bancário. Repetir o mesmo registro não duplica operações, inclusive após recarga; usar a mesma identidade com dados/classificação diferentes é conflito e exige revisão. Não se presume equivalência com lançamentos já digitados ou importados por CSV. O saldo inicial deve corresponder ao início do período importado, para não contabilizar o extrato duas vezes.

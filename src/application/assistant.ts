@@ -4,6 +4,7 @@ import { parseBRL, sum } from '../domain/money';
 import { dashboardData, monthRange } from './dashboard';
 import { formatMoney } from './finance-view';
 import { planningData } from './planning';
+import { categoryPath } from '../domain/categories';
 
 export interface AssistantAnswer { text: string; command?: Record<string, unknown> }
 export interface AssistantProvider { answer(state: State, question: string, today: string): AssistantAnswer }
@@ -21,7 +22,10 @@ export const localAssistant: AssistantProvider = {
       const account = matchName(state.accounts.filter(item => !item.archived), expense ? expense[3] : income![3]);
       if (!account) return { text: 'Qual é o nome exato da conta? Há uma conta ausente ou mais de uma com esse nome. Use Contas e saldos para conferir.' };
       const kind = expense ? 'expense' : 'income';
-      const category = matchName(state.categories.filter(item => item.kind === kind && !item.archived), expense ? expense[2] : income![4]);
+      const categoryName = expense ? expense[2] : income![4];
+      const activeCategories = state.categories.filter(item => item.kind === kind && !item.archived);
+      const pathMatches = activeCategories.map(item => ({ ...item, name: categoryPath(state.categories, item.id) })).filter(item => normalize(item.name) === normalize(categoryName));
+      const category = pathMatches.length === 1 ? pathMatches[0] : pathMatches.length === 0 ? matchName(activeCategories, categoryName) : undefined;
       if (!category) return { text: 'Qual categoria ativa devo usar? Informe seu nome exato; se houver nomes iguais, personalize-os antes de registrar.' };
       const source = income ? matchName(state.sources.filter(item => !item.archived), income[2]) : undefined;
       if (income && !source) return { text: 'Qual é a fonte exata da receita? Confira as fontes cadastradas em Categorias e fontes.' };

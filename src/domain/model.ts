@@ -10,7 +10,7 @@ const base = { id: idSchema, createdAt: z.iso.datetime() };
 const editable = { archived: z.boolean().optional(), updatedAt: z.iso.datetime().optional() };
 const accountFields = { institution: z.string().trim().max(120).optional(), kind: z.enum(['checking', 'savings', 'payment', 'cash']).optional() };
 const account = z.strictObject({ ...base, ...editable, ...accountFields, name, currency: z.literal('BRL'), openedOn: dateSchema });
-const category = z.strictObject({ ...base, ...editable, name, kind: z.enum(['income', 'expense']) });
+const category = z.strictObject({ ...base, ...editable, name, kind: z.enum(['income', 'expense']), parentId: idSchema.optional() });
 const person = z.strictObject({ ...base, ...editable, name });
 const source = z.strictObject({ ...base, ...editable, name });
 const card = z.strictObject({ ...base, ...editable, institution: z.string().trim().max(120).optional(), name, limit: amountSchema, closingDay: z.number().int().min(1).max(31), dueDay: z.number().int().min(1).max(31) });
@@ -57,6 +57,7 @@ const commandBase = { key: idSchema };
 const financial = { ...commandBase, date: dateSchema, description: name, amount: amountSchema };
 const splitInput = z.strictObject({ amount: amountSchema, personId: idSchema.optional(), categoryId: idSchema.optional(), dueDate: dateSchema.optional() });
 export const commandSchema = z.discriminatedUnion('type', [
+  z.strictObject({ ...commandBase, type: z.literal('setCategoryParent'), id: idSchema, parentId: idSchema.nullable() }),
   z.strictObject({ ...commandBase, type: z.literal('reverseMovement'), operationId: idSchema, reason: name }),
   z.strictObject({ ...commandBase, type: z.literal('createGoal'), id: idSchema, name, accountId: idSchema, target: amountSchema, deadline: dateSchema }),
   z.strictObject({ ...commandBase, type: z.literal('fundGoal'), id: idSchema, amount: moneySchema.refine(value => value >= 0) }),
@@ -82,7 +83,7 @@ export const commandSchema = z.discriminatedUnion('type', [
   z.strictObject({ ...commandBase, type: z.literal('renameSource'), id: idSchema, name }),
   z.strictObject({ ...commandBase, type: z.literal('setArchived'), entity: z.enum(['account', 'category', 'source']), id: idSchema, archived: z.boolean() }),
   z.strictObject({ ...commandBase, type: z.literal('createAccount'), id: idSchema, name, ...accountFields, openingBalance: moneySchema, date: dateSchema }),
-  z.strictObject({ ...commandBase, type: z.literal('createCategory'), id: idSchema, name, kind: z.enum(['income', 'expense']) }),
+  z.strictObject({ ...commandBase, type: z.literal('createCategory'), id: idSchema, name, kind: z.enum(['income', 'expense']), parentId: idSchema.optional() }),
   z.strictObject({ ...commandBase, type: z.literal('createPerson'), id: idSchema, name }),
   z.strictObject({ ...commandBase, type: z.literal('createSource'), id: idSchema, name }),
   z.strictObject({ ...commandBase, type: z.literal('createCard'), id: idSchema, name, institution: z.string().trim().max(120).optional(), limit: amountSchema, closingDay: z.number().int().min(1).max(31), dueDay: z.number().int().min(1).max(31) }),

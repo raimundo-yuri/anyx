@@ -61,7 +61,7 @@ test('produção: estorno exige confirmação, preserva vínculo e sobrevive a b
   const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'Baixar backup', exact: true }).click();
   const path = info.outputPath('backup-com-estorno.json'); await (await download).saveAs(path);
   const backup = JSON.parse(await readFile(path, 'utf8'));
-  expect(backup.version).toBe(3); expect(backup.state.operations.filter((item: { kind: string }) => item.kind === 'reversal')).toHaveLength(1);
+  expect(backup.version).toBe(4); expect(backup.state.operations.filter((item: { kind: string }) => item.kind === 'reversal')).toHaveLength(1);
   await restore(page, backup.state);
   await nav(page, 'Contas e saldos'); await expect(page.getByTestId('accounts-total')).toHaveText(/1\.000,00/);
   await page.reload(); await nav(page, 'Movimentações');

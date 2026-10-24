@@ -26,6 +26,7 @@ export class FinanceDatabase extends Dexie {
       if (purchases.length) await transaction.table('installments').bulkPut(purchases.map(purchase => ({ id: purchase.id, createdAt: purchase.createdAt, purchaseId: purchase.id, invoiceId: purchase.invoiceId, index: 1, amount: purchase.amount })));
     });
     this.version(3).stores({ operations: 'id, date, kind, relatedId' });
+    this.version(4).stores({ categories: 'id, kind, parentId' });
     // Do not silently close a stale tab and let it keep pretending writes are available.
     this.on('versionchange', () => { this.close(); });
   }
