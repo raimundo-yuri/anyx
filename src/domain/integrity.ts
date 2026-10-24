@@ -1,3 +1,4 @@
+import { assertCardRefunds } from './card-refunds';
 import { FinanceError } from './errors';
 import { isReversibleMovement, stateSchema, tableNames, type Entry, type State } from './model';
 import { balance, reserved, reversalFor, summary } from './queries';
@@ -50,7 +51,7 @@ export function assertState(input: State): void {
       const allowed = loan.direction === 'lent' ? ['cash:debit', 'loanAsset:credit', 'income:credit'] : ['cash:credit', 'loanDebt:debit', 'expense:debit'];
       ensure(entries.every(item => allowed.includes(`${item.ledger}:${item.side}`)), 'Lançamento de pagamento de empréstimo inválido.');
       for (const entry of entries.filter(item => item.ledger === 'loanAsset' || item.ledger === 'loanDebt')) ensure(entry.referenceId === loan.id, 'Pagamento de outro empréstimo.');
-    } else ensure(signatures[operation.kind].includes(signature), 'Lançamentos incompatíveis com a operação.');
+    } else if (!['purchaseRefund', 'cardCreditUse', 'personRefund'].includes(operation.kind)) ensure(signatures[operation.kind as keyof typeof signatures].includes(signature), 'Lançamentos incompatíveis com a operação.');
     if (operation.kind === 'transfer') ensure(entries[0].referenceId !== entries[1].referenceId, 'Transferência para a mesma conta.');
     if (operation.kind === 'opening') ensure(entries[0].referenceId === entries[1].referenceId, 'Saldo inicial de contas diferentes.');
     ensure(input.receipts.some(item => item.id === operation.id), 'Operação sem registro de comando.');
@@ -63,6 +64,8 @@ export function assertState(input: State): void {
       const account = requireRecord(input.accounts, entry.referenceId, 'Conta');
       ensure(requireRecord(input.operations, entry.operationId, 'Operação').date >= account.openedOn, 'Operação anterior à abertura da conta.');
     }
+    if (entry.ledger === 'cardCredit') requireRecord(input.cards, entry.referenceId, 'Cartão');
+    if (entry.ledger === 'personPayable') requireRecord(input.receivables, entry.referenceId, 'Recebível da devolução');
     if (entry.ledger === 'receivable') requireRecord(input.receivables, entry.referenceId, 'Recebível');
     if (entry.ledger === 'card') requireRecord(input.invoices, entry.referenceId, 'Fatura');
     if (entry.ledger === 'investment' || entry.ledger === 'valuation') requireRecord(input.investments, entry.referenceId, 'Investimento');
@@ -189,12 +192,12 @@ export function assertState(input: State): void {
   }
   // A backdated payment must not create an overpayment between two later purchases.
   const dates = new Map(input.operations.map(item => [item.id, item.date]));
-  for (const ledger of ['card', 'receivable', 'investment', 'loanAsset', 'loanDebt'] as const) {
+  for (const ledger of ['card', 'receivable', 'investment', 'loanAsset', 'loanDebt', 'cardCredit', 'personPayable'] as const) {
     for (const referenceId of new Set(input.entries.filter(item => item.ledger === ledger).map(item => item.referenceId))) {
       const daily = new Map<string, number[]>();
       for (const entry of input.entries.filter(item => item.ledger === ledger && item.referenceId === referenceId)) {
         const date = dates.get(entry.operationId)!;
-        const amount = entry.amount * (entry.side === (['card', 'loanDebt'].includes(ledger) ? 'credit' : 'debit') ? 1 : -1);
+        const amount = entry.amount * (entry.side === (['card', 'loanDebt', 'personPayable'].includes(ledger) ? 'credit' : 'debit') ? 1 : -1);
         daily.set(date, [...(daily.get(date) ?? []), amount]);
       }
       let pending = 0;
@@ -204,6 +207,7 @@ export function assertState(input: State): void {
       }
     }
   }
+  assertCardRefunds(input);
   summary(input); // Aggregate values must also remain within safe integer bounds.
   for (const receipt of input.receipts) ensure(tableNames.some(table => table !== 'receipts' && input[table].some(item => item.id === receipt.resultId)), 'Resultado idempotente ausente.');
 }

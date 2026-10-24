@@ -1,6 +1,7 @@
 import { commandSchema, isReversibleMovement, type Command, type Entry, type State } from './model';
 import { assertState, ensure, requireRecord } from './integrity';
 import { balance, reversalFor } from './queries';
+import { cardRefundCommand } from './card-refunds';
 import { advancedCommand } from './advanced-engine';
 import { allocate, percentage, sum } from './money';
 import { invoiceDates, nextMonth } from './dates';
@@ -63,6 +64,8 @@ export function execute(input: State, raw: unknown, context: Context): Execution
   };
   let resultId = command.key;
   switch (command.type) {
+    case 'purchaseRefund': case 'cardCreditUse': case 'personRefund':
+      resultId = cardRefundCommand(state, command, context, { op: addOperation, entry }); break;
     case 'setCategoryParent': {
       const item = record(state.categories, command.id, 'Categoria');
       if (command.parentId) item.parentId = command.parentId; else delete item.parentId;

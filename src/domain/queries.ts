@@ -5,7 +5,7 @@ import { cents, sum } from './money';
 
 /** Natural balances: asset/expense debit positive; liability/income/equity credit positive. */
 export function balance(state: State, ledger: Entry['ledger'], referenceId?: string): number {
-  const debitPositive = ['cash', 'receivable', 'expense', 'investment', 'loanAsset'].includes(ledger);
+  const debitPositive = ['cash', 'receivable', 'expense', 'investment', 'loanAsset', 'cardCredit'].includes(ledger);
   return sum(state.entries.filter(entry => entry.ledger === ledger && (!referenceId || entry.referenceId === referenceId))
     .map(entry => (entry.side === (debitPositive ? 'debit' : 'credit') ? 1 : -1) * entry.amount));
 }
@@ -29,16 +29,23 @@ export function summary(state: State, period?: { from: string; to: string }) {
   return {
     cash, available: available(state), reserved: reserved(state),
     income: balance(inPeriod, 'income'), expenses: balance(inPeriod, 'expense'),
-    receivables, invoices, netWorth: sum([cash, receivables, -invoices, balance(state, 'investment'), balance(state, 'loanAsset'), -balance(state, 'loanDebt')]),
+    receivables, invoices, cardCredit: balance(state, 'cardCredit'), personPayable: balance(state, 'personPayable'), netWorth: sum([cash, receivables, -invoices, balance(state, 'cardCredit'), -balance(state, 'personPayable'), balance(state, 'investment'), balance(state, 'loanAsset'), -balance(state, 'loanDebt')]),
   };
 }
 
 export function receivablePlan(state: State, receivableId: string) {
   const receivable = state.receivables.find(item => item.id === receivableId);
   if (!receivable) return [];
-  let paid = receivable.amount - balance(state, 'receivable', receivableId);
+  const reimbursedIds = new Set(state.operations.filter(item => item.kind === 'reimbursement').map(item => item.id));
+  let paid = sum(state.entries.filter(item => reimbursedIds.has(item.operationId) && item.ledger === 'receivable' && item.referenceId === receivableId && item.side === 'credit').map(item => item.amount));
+  let cancelled = sum(state.refundAllocations.filter(item => item.splitId === receivable.splitId).map(item => item.amount));
+  const cancellations = new Map<string, number>();
+  for (const part of state.receivableSchedules.filter(item => item.receivableId === receivableId).sort((a, b) => b.index - a.index)) {
+    const amount = Math.min(cancelled, part.amount); cancelled -= amount; cancellations.set(part.id, amount);
+  }
   return state.receivableSchedules.filter(item => item.receivableId === receivableId).sort((a, b) => a.index - b.index).map(item => {
-    const applied = Math.min(paid, item.amount); paid -= applied;
-    return { ...item, pending: item.amount - applied };
+    const cancelled = cancellations.get(item.id) ?? 0;
+    const applied = Math.min(paid, item.amount - cancelled); paid -= applied;
+    return { ...item, paid: applied, cancelled, pending: item.amount - cancelled - applied };
   });
 }

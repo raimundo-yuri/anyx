@@ -18,6 +18,7 @@ export function planningData(state: State, month: string, includeIncome = false)
   const invoices = sum(state.invoices.filter(item => item.dueDate <= period.to).map(item => balance(state, 'card', item.id)));
   const loans = sum(state.loans.filter(item => item.direction === 'borrowed' && item.dueDate <= period.to).map(item => balance(state, 'loanDebt', item.id)));
   return { budgets, predictedIncome, predictedExpense, invoices, loans,
-    conservative: sum([available(state), -predictedExpense, -invoices, -loans, ...(includeIncome ? [predictedIncome] : [])]),
+    personPayable: balance(state, 'personPayable'), cardCredit: balance(state, 'cardCredit'),
+    conservative: sum([available(state), -balance(state, 'personPayable'), -predictedExpense, -invoices, -loans, ...(includeIncome ? [predictedIncome] : [])]),
   };
 }

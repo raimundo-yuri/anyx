@@ -1,4 +1,4 @@
-# Segurança e privacidade — revisão interna da versão 0.10.0
+# Segurança e privacidade — revisão interna da versão 0.11.0
 
 ## Ameaças e controles
 
@@ -20,7 +20,13 @@ Não há backend, analytics, scripts/fontes externos, acesso bancário ou IA ext
 
 Receitas, despesas e transferências admitem estorno integral com motivo, prévia e confirmação. O original é preservado, e as entradas inversas precisam corresponder exatamente a referências, categorias e centavos. A unicidade por original é verificada na transação serializada, além da chave idempotente. Cancelamentos de contribuição apontam para o estorno correspondente; valores pagos permanecem registrados.
 
-Migrações v1/v2/v3→v4 preservam dados. Backups novos usam envelope v4 estrito e o leitor mantém compatibilidade com v2/v3. Isso não cria uma trilha criptográfica inviolável: quem controla o perfil pode modificar o armazenamento. A confirmação do operador pode estar errada; não há validação bancária automática.
+Migrações v1/v2/v3/v4→v5 preservam dados. Backups novos usam envelope v5 estrito e o leitor mantém compatibilidade com v2/v3/v4. Isso não cria uma trilha criptográfica inviolável: quem controla o perfil pode modificar o armazenamento. A confirmação do operador pode estar errada; não há validação bancária automática.
+
+## Integridade de devoluções comerciais — versão 0.11
+
+Rateio por divisão, limites acumulados, cartão/fatura, lançamentos e saldos em cada corte diário são verificados também ao restaurar backup. O valor recebido de terceiro e o cancelado são distintos; excesso recebido vira obrigação a devolver. Crédito com o emissor não é caixa. Novos eventos preservam pagamentos, parcelas e IDs originais.
+
+A prévia usa o motor validado; a confirmação compara o estado dentro da transação, com recibo idempotente e rollback de todas as tabelas em falha. Mudança entre abas exige outra revisão. Créditos retroativos anteriores a movimentos relacionados são recusados quando exigiriam reclassificação do histórico; eventos do mesmo dia são agrupados. Isso não substitui conferir a fatura real nem oferece correção automática para um estorno comercial informado incorretamente.
 
 ## Backup e exclusão
 

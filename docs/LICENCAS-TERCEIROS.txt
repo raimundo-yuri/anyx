@@ -1,4 +1,4 @@
-DexFin 0.10.0 — licenças das bibliotecas incluídas no site estático.
+DexFin 0.11.0 — licenças das bibliotecas incluídas no site estático.
 Preservar estes avisos ao redistribuir. Atualizar ao alterar dependências.
 
 

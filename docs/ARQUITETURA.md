@@ -1,4 +1,12 @@
-# Arquitetura — versão 0.10.0
+# Arquitetura — versão 0.11.0
+
+## Devoluções comerciais
+
+`domain/card-refunds.ts` implementa os comandos de devolução, compensação de crédito e pagamento à pessoa, sem I/O, e valida os registros/alocações e lançamentos correspondentes. Além das partidas balanceadas, a integridade confere prefixos diários não negativos de cartão, recebíveis, créditos e obrigações. Para cada recebível, reconstrói principal menos devoluções/reembolsos e o excesso recebido menos dinheiro devolvido; não usa o texto do recibo como fonte financeira.
+
+`CreditAdjustmentForm.tsx` simula o comando completo antes da confirmação. `executeReviewed` compara o estado revisado dentro da mesma transação de escrita e recusa alterações concorrentes, mesmo quando o novo valor ainda caberia no limite. `CreditWorkspace` separa pagamento, crédito, cancelamento de recebível e dinheiro recebido. `queries.receivablePlan` distribui cancelamentos das últimas parcelas para as primeiras e pagamentos por FIFO, preservando o plano original.
+
+Crédito no cartão é ativo sem caixa; valores a devolver são passivo. Ambos entram no patrimônio. O disponível continua caixa menos reservas, com obrigações informadas à parte; a projeção desconta o passivo com pessoas. Dashboard/orçamentos/relatórios mantêm consumo líquido assinado na data efetiva, inclusive meses negativos.
 
 Aplicação local React/TypeScript/Vite, CSS Modules e IndexedDB/Dexie. Não há backend, serviço bancário ou provedor de IA externa. Gráficos usam SVG e tabelas acessíveis, sem uma dependência adicional. O build usa chunks por seção e um vendor separado.
 
@@ -33,7 +41,7 @@ Transações de escrita em tabelas compartilhadas são serializadas, inclusive e
 
 ## Persistência e migração
 
-Banco `dexfin`, esquema 4. O esquema 1 continua declarado; a atualização cria novas tabelas e deriva uma parcela para cada compra antiga sem mudar IDs, operações ou recibos. Compras novas geram todas as parcelas explícitas. Snapshots legados de backup também recebem essa adaptação. A migração v2→v3 adiciona o índice `operations.relatedId`, preservando registros e IDs. A operação `reversal` liga a correção ao original, e `contributions.cancelledById` registra os cancelamentos decorrentes. A migração v3→v4 adiciona o índice categories.parentId sem reescrever o histórico. Backups novos usam envelope v4 estrito; o leitor aceita v2/v3 e adapta o legado quando necessário. Bancos não são apagados/recriados automaticamente.
+Banco `dexfin`, esquema 5. O esquema 1 continua declarado; a atualização cria novas tabelas e deriva uma parcela para cada compra antiga sem mudar IDs, operações ou recibos. Compras novas geram todas as parcelas explícitas. Snapshots legados de backup também recebem essa adaptação. A migração v2→v3 adiciona o índice `operations.relatedId`, preservando registros e IDs. A operação `reversal` liga a correção ao original, e `contributions.cancelledById` registra os cancelamentos decorrentes. A migração v3→v4 adiciona o índice categories.parentId sem reescrever o histórico. A migração v4→v5 acrescenta purchaseRefunds e refundAllocations, sem alterar dados antigos. Backups novos usam envelope v5 estrito; o leitor aceita v2/v3/v4 e adapta o legado quando necessário. Bancos não são apagados/recriados automaticamente.
 
 A validação do estado completo favorece integridade, mas seu custo cresce com o histórico. O adaptador deve ser medido e otimizado antes de uso com grande volume. A interface de repositório permite outro adaptador, mas autenticação/autorização multiusuário e resolução de conflitos não são fornecidas por essa abstração.
 

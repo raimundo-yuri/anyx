@@ -6,7 +6,7 @@ import { reversalFor } from '../domain/queries';
 import { categoryPath } from '../domain/categories';
 
 export const operationLabels: Record<Operation['kind'], string> = {
-  reversal: 'Estorno de correção',
+  reversal: 'Estorno de correção', purchaseRefund: 'Devolução de compra', cardCreditUse: 'Crédito aplicado em fatura', personRefund: 'Devolução à pessoa',
   investmentDeposit: 'Aporte', investmentWithdrawal: 'Resgate', valuation: 'Avaliação patrimonial', loanLent: 'Empréstimo concedido', loanBorrowed: 'Empréstimo recebido', loanRepayment: 'Pagamento de empréstimo',
   opening: 'Saldo inicial', income: 'Receita', expense: 'Despesa', transfer: 'Transferência',
   purchase: 'Compra no cartão', reimbursement: 'Reembolso', invoicePayment: 'Pagamento de fatura', contributionPayment: 'Contribuição',

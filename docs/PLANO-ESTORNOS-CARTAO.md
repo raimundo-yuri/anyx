@@ -1,6 +1,8 @@
 # Plano revisável — estornos comerciais de compras no cartão
 
-**Status: NÃO IMPLEMENTADO.** Este documento propõe uma evolução financeira. Não descreve um recurso disponível, não autoriza ajustes manuais no banco e não estabelece prazo ou escopo fechado de entrega. O modelo deverá ser revisto durante a implementação e validado antes de uma publicação.
+**Status: IMPLEMENTADO NA VERSÃO 0.11.0, no fluxo de crédito descrito.** Este documento conserva a proposta e a matriz usadas na revisão. A implementação está em `src/domain/card-refunds.ts` e `src/features/finance/CreditAdjustmentForm.tsx`; o guia USO.md descreve a interface. Não autoriza ajustes manuais no banco.
+
+A política adotada agrupa eventos no mesmo dia e recusa cadastrar um estorno anterior a movimentos já registrados do mesmo cartão ou das divisões selecionadas. O histórico de recebíveis/passivos é validado em cada corte diário. Devoluções são alocadas explicitamente por divisão; no cronograma, o cancelamento reduz as últimas parcelas, e pagamentos são aplicados por FIFO ao saldo ajustado. As parcelas originais do cartão não são canceladas automaticamente. Os limites abaixo continuam aplicáveis.
 
 O estorno de correção já existente para receitas, despesas e transferências é outro fluxo: ele anula um registro incorreto na data original. Este plano trata de uma compra válida que depois recebeu uma devolução comercial efetivamente creditada pelo emissor do cartão, inclusive parcial, compartilhada ou com parcelas futuras.
 

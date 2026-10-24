@@ -27,6 +27,7 @@ export class FinanceDatabase extends Dexie {
     });
     this.version(3).stores({ operations: 'id, date, kind, relatedId' });
     this.version(4).stores({ categories: 'id, kind, parentId' });
+    this.version(5).stores({ purchaseRefunds: 'id, &operationId, purchaseId, invoiceId', refundAllocations: 'id, refundId, splitId, &[refundId+splitId]' });
     // Do not silently close a stale tab and let it keep pretending writes are available.
     this.on('versionchange', () => { this.close(); });
   }
@@ -77,6 +78,12 @@ export class IndexedDbFinanceRepository implements FinanceRepository {
   async executeBatch(commands: readonly unknown[]): Promise<void> {
     await this.database.transaction('rw', this.database.tables, async () => {
       for (const command of commands) await this.execute(command);
+    });
+  }
+  async executeReviewed(command: unknown, expectedState: string): Promise<{ resultId: string; replayed: boolean }> {
+    return this.database.transaction('rw', this.database.tables, async () => {
+      if (JSON.stringify(await this.load()) !== expectedState) throw new FinanceError('Os dados mudaram em outra aba. Recalcule e revise a prévia antes de confirmar.');
+      return this.execute(command);
     });
   }
   execute(command: unknown): Promise<{ resultId: string; replayed: boolean }> {

@@ -1,4 +1,12 @@
-# Modelo de dados — esquema 4 (com histórico das bases v1/v2/v3)
+# Modelo de dados — esquema 5 (com histórico das bases v1/v2/v3/v4)
+
+## Atualização v5 — devolução comercial de cartão
+
+`purchaseRefunds`: `id`, `createdAt`, `operationId` único, `purchaseId`, `invoiceId`, `amount`. `refundAllocations`: `id`, `createdAt`, `refundId`, `splitId`, `amount`; par refundId+splitId único. Valores são centavos positivos e as alocações somam exatamente o estorno, limitadas ao valor original de cada divisão, inclusive em vários estornos parciais.
+
+Operações novas: `purchaseRefund` (relatedId=compra), `cardCreditUse` (relatedId=fatura), `personRefund` (relatedId=recebível). Ledgers novos: `cardCredit`, ativo por cartão, e `personPayable`, passivo por recebível original. O modelo separa crédito com o emissor, recebível cancelado, dinheiro recebido e dinheiro a devolver. As tabelas e os lançamentos originais permanecem intactos.
+
+Migrações v1/v2/v3/v4→v5 não apagam registros. Backups novos exigem formato v5 completo; formatos v2/v3/v4 recebem apenas as adaptações históricas documentadas. Leitores antigos não compreendem os novos eventos. A descrição dos esquemas anteriores abaixo é histórica.
 
 Todos os registros possuem `id` UUID e `createdAt` UTC. Datas financeiras e vencimentos são strings civis ISO `YYYY-MM-DD`. Valores são inteiros seguros em centavos BRL; percentuais são inteiros em pontos-base (750 = 7,5%).
 
@@ -41,7 +49,7 @@ Soma de débitos igual à de créditos em cada operação; referências existent
 
 Pendentes são derivados dos lançamentos e não podem ser negativos. Também é verificado o saldo no encerramento de cada data civil, evitando sobrepagamentos retroativos que seriam ocultados por uma compra posterior. Operações de caixa não podem anteceder a abertura da conta.
 
-O identificador do cartão não é conta de caixa, e seu limite nunca entra nos ativos. Categorias/fontes e edição/arquivamento foram implementados na etapa 4; previsões e parcelas foram adicionadas no esquema 2, descrito abaixo. Subcategorias permanecem pendentes.
+O identificador do cartão não é conta de caixa, e seu limite nunca entra nos ativos. Categorias/fontes e edição/arquivamento foram implementados na etapa 4; previsões e parcelas foram adicionadas no esquema 2, descrito abaixo. Subcategorias foram adicionadas no esquema 4.
 
 ## Relatórios e portabilidade futura
 

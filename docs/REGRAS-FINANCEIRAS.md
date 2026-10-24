@@ -1,5 +1,17 @@
 # Regras financeiras implementadas
 
+## Devolução comercial de cartão — versão 0.11
+
+O comando `purchaseRefund` recebe compra, fatura creditada do mesmo cartão, data efetiva, motivo, total e alocações por divisão. Cada divisão tem limite acumulado igual ao seu valor original. A própria parte credita despesa; a de terceiro cancela recebível pendente e credita `personPayable` no excesso já recebido. No débito, a fatura cai até zero e o excedente vira `cardCredit`. Não há renda, contribuição ou caixa novo.
+
+`cardCreditUse` debita a fatura e credita o ativo do mesmo cartão. `personRefund` debita a obrigação da divisão e credita a conta ativa da devolução efetiva. Valores devem caber na data e no saldo atual; reservas em conta continuam protegidas. Nenhum desses fatos apaga lançamentos anteriores ou cancela automaticamente parcelas do cartão.
+
+Em cada corte diário: recebível=max(principal−devoluções−recebido,0); a devolver=max(recebido−(principal−devoluções),0)−devolvido. A obrigação não pode ficar negativa. Créditos e obrigações têm prefixos diários não negativos. Estornos retroativos antes de movimentos já registrados do cartão ou das divisões selecionadas são recusados para evitar reescrever a classificação de pagamentos. Movimentos no mesmo dia são agrupados, sem ordem intradiária presumida.
+
+Com caixa inicial de R$ 1.000, compra de R$ 300 (R$ 120 seus, R$ 100 de A, R$ 80 de B), fatura paga e R$ 60 recebidos de A, a devolução total deixa caixa R$ 760, crédito no cartão R$ 300, recebíveis zero e R$ 60 a devolver: patrimônio R$ 1.000. Devolver R$ 60 deixa caixa R$ 700 e obrigação zero, mantendo patrimônio R$ 1.000. Não há recuperação automática dos R$ 300 para a conta.
+
+A despesa reduz na data efetiva do crédito, podendo deixar o mês negativo. Orçamento e dashboard mostram consumo líquido sem esconder esse crédito nem alterar o mês original. Disponível permanece caixa menos reservas, com obrigações separadas; a projeção conservadora desconta o valor a devolver às pessoas, sem adicionar crédito no cartão como dinheiro disponível. Cancelamento simples de parcelas, crédito direto em conta, contestação e correção de uma devolução comercial incorreta não fazem parte deste fluxo.
+
 ## Dinheiro e datas
 
 Dinheiro é armazenado em centavos inteiros seguros. `parseBRL` aceita texto brasileiro como `1.234,56`; rejeita formatos ambíguos e não multiplica números decimais em ponto flutuante. Agregações validam overflow. Percentuais usam BigInt nos intermediários e arredondam meio centavo para cima.
@@ -57,7 +69,7 @@ O filtro de período altera os fluxos de receita/despesa; os estoques continuam 
 
 ## Limites
 
-Comandos de caixa representam fatos realizados. Previsões, orçamentos, empréstimos, investimentos e parcelamentos têm comandos próprios, descritos na atualização abaixo. Estornos de correção de receitas/despesas/transferências são implementados na evolução descrita abaixo. Estornos comerciais, de outros módulos e conciliação automática continuam pendentes. A versão 0.10 permite conferir manualmente o saldo com o extrato, sem ajustar lançamentos. Não há comando de exclusão silenciosa de histórico.
+Comandos de caixa representam fatos realizados. Previsões, orçamentos, empréstimos, investimentos e parcelamentos têm comandos próprios, descritos na atualização abaixo. Estornos de correção de receitas/despesas/transferências são implementados na evolução descrita abaixo. Devoluções comerciais de cartão têm o fluxo da versão 0.11 descrito acima; correção de outros módulos e conciliação automática continuam pendentes. A versão 0.10 permite conferir manualmente o saldo com o extrato, sem ajustar lançamentos. Não há comando de exclusão silenciosa de histórico.
 
 
 ## Registro pela interface — etapa 4
@@ -72,7 +84,7 @@ O extrato mostra cada operação original uma vez. A transferência aparece nos 
 
 ## Atualização das etapas 5 a 8
 
-As referências anteriores a parcelas, metas, orçamento, previsões, investimentos e empréstimos como pendentes descrevem o estado da etapa 4. Esses módulos agora têm regras e interface. Estornos comerciais/de outros módulos, renegociações e conciliação automática permanecem fora do escopo implementado. A correção integral de receitas/despesas/transferências foi acrescentada na versão 0.9.
+As referências anteriores a parcelas, metas, orçamento, previsões, investimentos e empréstimos como pendentes descrevem o estado da etapa 4. Esses módulos agora têm regras e interface. Correção de outros módulos, renegociações e conciliação automática permanecem fora do escopo implementado; devoluções comerciais de cartão foram acrescentadas na versão 0.11. A correção integral de receitas/despesas/transferências foi acrescentada na versão 0.9.
 
 ### Cartão parcelado e reembolso independente
 

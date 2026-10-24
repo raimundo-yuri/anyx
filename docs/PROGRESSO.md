@@ -216,3 +216,30 @@ Esquema IndexedDB 4 adiciona o índice de grupo das categorias, sem novas tabela
 - `npm audit --audit-level=moderate`: zero vulnerabilidades conhecidas. Nenhuma dependência adicionada.
 
 Estorno comercial de cartão continua sem implementação. O plano `PLANO-ESTORNOS-CARTAO.md` especifica devolução compartilhada, crédito em cartão e valores a devolver a terceiros antes de expor qualquer ação financeira. Isso evita tratar devolução como renda ou apagar reembolsos já recebidos.
+
+
+## Etapa 16 — devoluções comerciais de cartão, versão 0.11.0
+
+O usuário autorizou continuar as melhorias gratuitas e publicar as versões. Implementadas devoluções integrais/parciais de compras já creditadas pelo emissor, com rateio explícito por divisão, data efetiva, motivo, prévia calculada pelo motor e confirmação. Não são correções de digitação na data original. Compra, divisões, parcelas, pagamentos e reembolsos originais são preservados.
+
+O crédito reduz a fatura escolhida do mesmo cartão até zero; excedente vira ativo separado com o emissor. A utilização em outra fatura é explícita, com prévia e confirmação, sem fabricar caixa. A parte pessoal reduz consumo na data efetiva; a de terceiros reduz recebíveis e reconhece obrigação de devolver o excesso já recebido. O pagamento posterior à pessoa usa conta ativa, preserva reservas e não cria outra despesa.
+
+`purchaseRefunds` e `refundAllocations` são adicionadas no esquema IndexedDB 5. Operações e ledgers próprios vinculam crédito no cartão e passivo por recebível. A integridade confere alocações, referências, limites acumulados, entradas exatas e saldos por corte diário. Estorno anterior a movimentos já registrados do cartão/divisões selecionadas é recusado para evitar reescrever a classificação de pagamentos; eventos do mesmo dia são agrupados. Aplicação de crédito e devolução à pessoa precisam de cobertura na data e no saldo atual.
+
+`executeReviewed` compara o estado completo dentro da mesma transação que confirma o comando. Alteração por outra aba exige nova prévia, mesmo quando a operação ainda caberia no limite. Idempotência, concorrência entre conexões e falha de escrita nas alocações foram exercitadas sem gravação parcial.
+
+Pessoas distingue dinheiro recebido, cancelamento e devolução realizada. O cronograma reduz as últimas parcelas e aplica pagamentos FIFO ao valor ajustado, sem renomear cancelamento como pagamento. Faturas distinguem pagamentos, devoluções e créditos aplicados. Dashboard, orçamento, patrimônio, planejamento, assistente, relatório e CSV reconhecem os novos ativos/passivos e consumo mensal assinado. O disponível permanece caixa menos reservas, com obrigações de devolução informadas separadamente; a projeção conservadora as desconta. Crédito no cartão nunca entra como dinheiro em conta.
+
+Backups novos usam envelope v5 estrito, preservando leitura v2/v3/v4 e envelope criptografado v1. Migrações de bancos 1/2/3/4 preservam histórico e idempotência. Versões antigas não devem ser usadas sobre o banco atualizado sem avaliar compatibilidade. Guias de uso, portabilidade, manutenção, arquitetura, segurança e modelo foram atualizados; o plano anterior agora identifica o fluxo efetivamente implementado.
+
+### Validação da entrega
+
+- `npm run check`: 188 testes aprovados, tipagem e build aprovados.
+- `npm run test:browser`: 20 cenários aprovados em desktop e viewport móvel.
+- Regressão completa de produção: 36 testes aprovados, incluindo os seis cenários novos de devolução/crédito/pessoa, consumo negativo e prévia invalidada por outra aba.
+- `npm run test:pages`: dois testes aprovados no caminho `/anyx/`, incluindo gravação offline.
+- Total da regressão: 246 testes distintos aprovados. Depois do ajuste de foco/rolagem para a prévia, build e os seis fluxos novos foram novamente aprovados.
+- `npm audit --audit-level=moderate`: zero vulnerabilidades conhecidas; nenhuma dependência ou serviço pago adicionado.
+- A primeira execução da interface encontrou ordem instável das divisões ao ler os UUIDs do IndexedDB. A tela agora ordena parte própria e pessoas de forma estável; o cálculo continua vinculado ao ID exato da divisão. Os testes finais passaram após a correção. Captura móvel foi inspecionada; a prévia recebe foco para ser encontrada sem procurar no formulário longo.
+
+Limites: crédito comercial efetivo no cartão. Cancelamento simples de parcelas, crédito direto em banco, contestação, juros/tarifas, correção de uma devolução comercial incorreta e sincronização entre dispositivos seguem sem implementação. O resultado não equivale a teste em todos os navegadores/dispositivos físicos ou auditoria externa. Não houve acesso ao perfil financeiro pessoal do usuário.

@@ -4,7 +4,7 @@
 
 Em **Relatórios e backup**, escolha exportar com senha (padrão) ou desative explicitamente a criptografia. O arquivo inclui todas as tabelas, lançamentos, relações e recibos de idempotência.
 
-Formato JSON atual `dexfin`, versão 4, com `exportedAt` UTC e `state`. Todas as tabelas atuais são obrigatórias. O leitor também aceita os envelopes v2/v3 e adapta estados legados quando necessário sem trocar IDs; parcelas únicas antigas são derivadas da compra original. Versões desconhecidas são rejeitadas. Estornos de correção exigem v3 ou posterior; subcategorias exigem v4. Leitores antigos não entendem os novos formatos. O envelope criptografado continua na versão 1 e protege o JSON interno atual.
+Formato JSON atual `dexfin`, versão 5, com `exportedAt` UTC e `state`. Todas as tabelas atuais são obrigatórias. O leitor também aceita os envelopes v2/v3/v4 e adapta estados legados quando necessário sem trocar IDs; parcelas únicas antigas são derivadas da compra original. Versões desconhecidas são rejeitadas. Estornos de correção exigem v3 ou posterior; subcategorias exigem v4; devoluções comerciais exigem v5. Leitores antigos não entendem os novos formatos. O envelope criptografado continua na versão 1 e protege o JSON interno atual.
 
 Formato protegido `dexfin-encrypted`, versão 1: PBKDF2-SHA-256 com 310.000 iterações, salt aleatório de 16 bytes, chave AES-GCM de 256 bits e IV aleatório de 12 bytes. A chave não é extraível; salt/IV e ciphertext ficam no envelope. A senha não é gravada. Perda da senha significa perda do acesso a esse backup. Integridade autenticada detecta senha incorreta ou ciphertext alterado; um backup JSON sem proteção não é prova de autenticidade contra alteração intencional.
 
@@ -45,6 +45,11 @@ Relacionamentos principais:
 | operations.relatedId, quando kind = reversal | operations.id | Estorno integral ligado ao original |
 | contributions.cancelledById | operations.id | Estorno que cancelou a contribuição pendente, quando preenchido |
 | purchases.operationId | operations.id | Operação original da compra |
+| purchaseRefunds.operationId | operations.id | Operação de devolução comercial |
+| purchaseRefunds.purchaseId | purchases.id | Compra original preservada |
+| purchaseRefunds.invoiceId | invoices.id | Fatura que recebeu o crédito |
+| refundAllocations.refundId | purchaseRefunds.id | Alocação explícita da devolução |
+| refundAllocations.splitId | splits.id | Divisão original beneficiada |
 | splits.purchaseId | purchases.id | Responsabilidades de uma compra |
 | installments.purchaseId | purchases.id | Parcelas do cartão da compra |
 | installments.invoiceId | invoices.id | Fatura que recebe a parcela |
@@ -57,9 +62,11 @@ Relacionamentos principais:
 | contributions.incomeId | operations.id | Origem realizada da contribuição |
 | forecasts.operationId | operations.id | Realização confirmada da previsão |
 
-`entries.referenceId` é uma referência tipada por `entries.ledger`; não estabeleça uma relação única indiscriminada entre esse campo e todas as tabelas. Crie dimensões/consultas filtradas por natureza: cash→accounts, card→invoices, receivable→receivables, expense→categories, income→sources, investment/valuation→investments, loanAsset/loanDebt→loans.
+`entries.referenceId` é uma referência tipada por `entries.ledger`; não estabeleça uma relação única indiscriminada entre esse campo e todas as tabelas. Crie dimensões/consultas filtradas por natureza: cash→accounts, card→invoices, cardCredit→cards, receivable/personPayable→receivables, expense→categories, income→sources, investment/valuation→investments, loanAsset/loanDebt→loans.
 
 Estornos de correção preservam o original e criam entradas exatamente inversas na mesma data financeira. Para acompanhar correções, filtre `operations.kind = reversal` e relacione `relatedId` ao original.
+
+Devolução comercial usa `operations.kind = purchaseRefund`, com `relatedId` para a compra, registros em `purchaseRefunds` e rateio em `refundAllocations`. Reduz consumo somente na data efetiva do crédito, que pode produzir total mensal negativo. `cardCreditUse.relatedId` identifica a fatura compensada e `personRefund.relatedId` o recebível cuja obrigação está sendo liquidada. Use crédito menos débito para o passivo `personPayable` e débito menos crédito para o ativo `cardCredit`; nenhum é caixa ou renda. Não trate todo débito em `card` como pagamento bancário nem todo crédito em `receivable` como dinheiro recebido: a natureza da operação distingue compensação e cancelamento.
 
 Receita é o saldo credor dos lançamentos `income`. Consumo é o saldo devedor de `expense`. Inclua os créditos de despesa e débitos de receita para que os estornos sejam descontados. Não some compras, divisões, parcelas e pagamentos para calcular despesa: isso duplicaria fatos. A compra compartilhada de R$ 300 com R$ 120 pessoais produz R$ 120 de despesa, R$ 180 a receber e R$ 300 no passivo; parcelas apenas distribuem o passivo entre faturas. Transferência, pagamento de fatura, reembolso, empréstimo principal e aporte/resgate não são consumo ou renda.
 

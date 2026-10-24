@@ -1,4 +1,4 @@
-# Como usar — versão 0.10.0
+# Como usar — versão 0.11.0
 
 O DexFin é local. Seus dados pertencem ao perfil e à origem do navegador; não há conta externa, integração bancária ou sincronização. Faça backups: limpar os dados do site, mudar porta/perfil ou perder o dispositivo pode retirar o acesso aos registros.
 
@@ -41,7 +41,7 @@ Uma previsão realizada vinculada ao original passa a mostrar **Realização est
 
 Cada original aceita um estorno. Repetição da mesma ação é idempotente; outra aba acompanha o resultado e não cria um segundo estorno. Não há estorno de estorno: para registrar um fato válido, crie um novo lançamento revisado.
 
-Este fluxo atende à correção integral de registros incorretos de caixa. Devoluções comerciais, estornos de compras no cartão, pagamentos de fatura/reembolso/contribuição, empréstimos, investimentos e saldo inicial ainda exigem evolução específica; não possuem botão de estorno nesta versão.
+Este fluxo atende à correção integral de registros incorretos de caixa. Devoluções comerciais de compras no cartão têm o fluxo separado descrito ao fim deste guia. Correção de pagamentos de fatura/reembolso/contribuição, empréstimos, investimentos, saldo inicial e devoluções comerciais informadas incorretamente ainda exige evolução específica.
 
 ## Cartões, compras compartilhadas e recebíveis
 
@@ -113,4 +113,25 @@ A PWA funciona no build de produção, após a primeira carga completa conectada
 
 ## Limitações
 
-Sem Open Finance/sincronização, XLSX, anexos, conciliação automática ou sessões de conferência salvas, estornos parciais/comerciais ou de outros módulos, renegociações, edição financeira no original, amortização automática ou controles fiscais de investimentos. O banco local não é criptografado; o backup pode ser. Consulte [instalação e manutenção](INSTALACAO-E-MANUTENCAO.md) para primeiros passos, atualização e recuperação.
+Sem Open Finance/sincronização, XLSX, anexos, conciliação automática ou sessões de conferência salvas, correção de pagamentos/devoluções comerciais e demais módulos, renegociações, edição financeira no original, amortização automática ou controles fiscais de investimentos. O banco local não é criptografado; o backup pode ser. Consulte [instalação e manutenção](INSTALACAO-E-MANUTENCAO.md) para primeiros passos, atualização e recuperação.
+
+## Devolução comercial de compra no cartão — versão 0.11
+
+Use este fluxo para uma compra válida que depois recebeu crédito efetivo do emissor, inclusive devolução parcial. Não é o estorno de correção de um registro digitado por engano. A data é a do crédito realizado; a compra e seus pagamentos permanecem no histórico.
+
+1. Abra **Cartões e faturas → Registrar devolução** e escolha a compra e a fatura que recebeu o crédito, do mesmo cartão.
+2. Informe quanto foi devolvido de cada divisão. Sua parte aparece primeiro e depois as pessoas por nome. Use zero nas partes sem devolução; o aplicativo não presume rateio proporcional. A soma é o crédito total.
+3. Informe a data efetiva e o motivo. Use **Calcular prévia** e confira a fatura, o crédito com o emissor e quanto haverá a receber/devolver de cada pessoa.
+4. Marque a confirmação e use **Confirmar registro**. Se outra aba alterar os dados, recalcule e revise a prévia; não é permitido confirmar valores antigos.
+
+O crédito reduz a fatura escolhida até zero. O excedente aparece como **Crédito com o emissor**, separado do limite e do saldo bancário. Em outra fatura do mesmo cartão com valor pendente, use **Aplicar crédito** somente depois da compensação efetiva, com valor/data, prévia e confirmação. Isso não cria nova despesa, renda ou pagamento em dinheiro.
+
+Nas divisões de terceiros, a devolução reduz primeiro o valor ainda a receber. Se a pessoa já pagou mais que sua responsabilidade ajustada, a diferença fica **A devolver**. Em **Pessoas e recebíveis**, use **Devolver à pessoa** somente após devolver o dinheiro: escolha a conta, o valor e a data, revise e confirme. O pagamento reduz essa obrigação e o saldo da conta, sem criar outra despesa. O histórico do reembolso anterior é mantido.
+
+Exemplo: compra de R$ 300,00, sendo R$ 120,00 seus, R$ 100,00 de A e R$ 80,00 de B. Se A pagou R$ 60,00 e a fatura já foi paga, uma devolução total gera R$ 300,00 de crédito no cartão, zera os recebíveis e deixa R$ 60,00 a devolver a A. Não devolve R$ 300,00 automaticamente ao saldo bancário.
+
+Parcelas do cartão permanecem devidas: crédito comercial e cancelamento simples de parcelas são fatos diferentes. Não registre ambos para a mesma devolução. No plano prometido pela pessoa, a redução começa nas últimas parcelas e pagamentos são distribuídos por FIFO ao valor ajustado; a tela separa pago, cancelado e pendente.
+
+Registre créditos em ordem de data. Um estorno anterior a movimentos já registrados do mesmo cartão ou das divisões selecionadas é recusado, pois poderia exigir reclassificar pagamentos existentes. Valores do mesmo dia são agrupados; o app não reconstrói horários bancários. Devolução direta em conta, cancelamento simples de parcelas, contestação em análise, juros/tarifas e correção de uma devolução incorreta ainda exigem outro fluxo e não são suportados aqui.
+
+Despesas e orçamento mostram consumo líquido na data do crédito: uma devolução de compra antiga pode deixar o mês atual negativo. Isso não é renda nem dinheiro novo em conta. A projeção conservadora desconta valores a devolver às pessoas; o indicador disponível continua sendo caixa menos reservas e mostra essas obrigações separadamente. Faça backup antes da atualização para esquema 5/backups v5 e não retorne código antigo sobre o banco atualizado.

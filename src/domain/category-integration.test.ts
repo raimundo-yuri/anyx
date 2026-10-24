@@ -65,11 +65,11 @@ describe('Subcategorias integradas ao domínio e aos relatórios', () => {
     expect(f.state.categories.find(item => item.id === child)?.archived).toBe(false);
   });
 
-  it('backup v4 preserva hierarquia e mantém compatibilidade de leitura com v3', async () => {
+  it('backup atual preserva hierarquia e mantém compatibilidade de leitura com v3', async () => {
     const f = fixture(), legacy = JSON.parse(plainBackup(f.state)); legacy.version = 3;
     expect(await readBackup(JSON.stringify(legacy))).toEqual(f.state);
     f.run({ type: 'createCategory', id: uid(), name: 'Filha', kind: 'expense', parentId: f.ids.expense });
-    const backup = plainBackup(f.state); expect(JSON.parse(backup).version).toBe(4);
+    const backup = plainBackup(f.state); expect(JSON.parse(backup).version).toBe(5);
     expect(await readBackup(backup)).toEqual(f.state);
     await expect(readBackup(JSON.stringify({ ...JSON.parse(backup), version: 3 }))).rejects.toThrow(/versão 4/);
   });

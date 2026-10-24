@@ -50,7 +50,7 @@ describe('Datas civis e ciclos de fatura', () => {
 describe('Motor financeiro', () => {
   it('inicia vazio, sem contas nem saldos fictícios', () => {
     assertState(emptyState());
-    expect(summary(emptyState())).toEqual({ cash: 0, available: 0, reserved: 0, income: 0, expenses: 0, receivables: 0, invoices: 0, netWorth: 0 });
+    expect(summary(emptyState())).toEqual({ cash: 0, available: 0, reserved: 0, income: 0, expenses: 0, receivables: 0, invoices: 0, cardCredit: 0, personPayable: 0, netWorth: 0 });
   });
   it('saldo inicial não é receita e suporta saldo bancário negativo', () => {
     const f = fixture();

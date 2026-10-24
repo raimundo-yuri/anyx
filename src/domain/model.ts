@@ -15,8 +15,8 @@ const person = z.strictObject({ ...base, ...editable, name });
 const source = z.strictObject({ ...base, ...editable, name });
 const card = z.strictObject({ ...base, ...editable, institution: z.string().trim().max(120).optional(), name, limit: amountSchema, closingDay: z.number().int().min(1).max(31), dueDay: z.number().int().min(1).max(31) });
 const invoice = z.strictObject({ ...base, cardId: idSchema, cycle: z.string().regex(/^\d{4}-\d{2}$/), closingDate: dateSchema, dueDate: dateSchema });
-const operation = z.strictObject({ ...base, relatedId: idSchema.optional(), date: dateSchema, description: name, kind: z.enum(['opening', 'income', 'expense', 'transfer', 'reversal', 'purchase', 'reimbursement', 'invoicePayment', 'contributionPayment', 'investmentDeposit', 'investmentWithdrawal', 'valuation', 'loanLent', 'loanBorrowed', 'loanRepayment']) });
-export const ledgerKinds = ['cash', 'receivable', 'card', 'income', 'expense', 'equity', 'investment', 'valuation', 'loanAsset', 'loanDebt'] as const;
+const operation = z.strictObject({ ...base, relatedId: idSchema.optional(), date: dateSchema, description: name, kind: z.enum(['opening', 'income', 'expense', 'transfer', 'reversal', 'purchaseRefund', 'cardCreditUse', 'personRefund', 'purchase', 'reimbursement', 'invoicePayment', 'contributionPayment', 'investmentDeposit', 'investmentWithdrawal', 'valuation', 'loanLent', 'loanBorrowed', 'loanRepayment']) });
+export const ledgerKinds = ['cash', 'receivable', 'card', 'income', 'expense', 'equity', 'investment', 'valuation', 'loanAsset', 'loanDebt', 'cardCredit', 'personPayable'] as const;
 const entry = z.strictObject({ ...base, operationId: idSchema, ledger: z.enum(ledgerKinds), referenceId: idSchema, side: z.enum(['debit', 'credit']), amount: amountSchema, categoryId: idSchema.optional() });
 const purchase = z.strictObject({ ...base, operationId: idSchema, invoiceId: idSchema, amount: amountSchema, buyerId: idSchema.optional() });
 const split = z.strictObject({ ...base, purchaseId: idSchema, amount: amountSchema, personId: idSchema.optional(), categoryId: idSchema.optional(), dueDate: dateSchema.optional() });
@@ -25,6 +25,8 @@ const reserve = z.strictObject({ ...base, accountId: idSchema, amount: moneySche
 const rule = z.strictObject({ ...base, name, enabled: z.boolean(), basisPoints: z.number().int().min(0).max(10_000), sourceIds: z.array(idSchema).min(1), mode: z.enum(['suggest', 'reserve']) });
 const contribution = z.strictObject({ ...base, incomeId: idSchema, ruleId: idSchema, accountId: idSchema, amount: amountSchema, basisPoints: z.number().int().min(0).max(10_000), status: z.enum(['suggested', 'reserved', 'paid', 'cancelled']), paymentId: idSchema.optional(), cancelledById: idSchema.optional() });
 const receipt = z.strictObject({ ...base, payload: z.string(), resultId: idSchema });
+const purchaseRefund = z.strictObject({ ...base, operationId: idSchema, purchaseId: idSchema, invoiceId: idSchema, amount: amountSchema });
+const refundAllocation = z.strictObject({ ...base, refundId: idSchema, splitId: idSchema, amount: amountSchema });
 
 const monthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).refine(value => validDate(value + '-01'));
 const installment = z.strictObject({ ...base, purchaseId: idSchema, invoiceId: idSchema, index: z.number().int().min(1).max(120), amount: amountSchema });
@@ -40,6 +42,7 @@ const loan = z.strictObject({ ...base, name, personId: idSchema, direction: z.en
 export const stateSchema = z.strictObject({
   accounts: z.array(account), categories: z.array(category), people: z.array(person), sources: z.array(source),
   cards: z.array(card), invoices: z.array(invoice), operations: z.array(operation), entries: z.array(entry),
+  purchaseRefunds: z.array(purchaseRefund), refundAllocations: z.array(refundAllocation),
   purchases: z.array(purchase), splits: z.array(split), receivables: z.array(receivable),
   installments: z.array(installment), receivableSchedules: z.array(receivableSchedule), goals: z.array(goal), budgets: z.array(budget), forecasts: z.array(forecast), recurrings: z.array(recurring), investments: z.array(investment), loans: z.array(loan),
   reserves: z.array(reserve), rules: z.array(rule), contributions: z.array(contribution), receipts: z.array(receipt),
@@ -57,6 +60,9 @@ const commandBase = { key: idSchema };
 const financial = { ...commandBase, date: dateSchema, description: name, amount: amountSchema };
 const splitInput = z.strictObject({ amount: amountSchema, personId: idSchema.optional(), categoryId: idSchema.optional(), dueDate: dateSchema.optional() });
 export const commandSchema = z.discriminatedUnion('type', [
+  z.strictObject({ ...financial, type: z.literal('purchaseRefund'), purchaseId: idSchema, invoiceId: idSchema, allocations: z.array(z.strictObject({ splitId: idSchema, amount: amountSchema })).min(1).max(100) }),
+  z.strictObject({ ...financial, type: z.literal('cardCreditUse'), invoiceId: idSchema }),
+  z.strictObject({ ...financial, type: z.literal('personRefund'), receivableId: idSchema, accountId: idSchema }),
   z.strictObject({ ...commandBase, type: z.literal('setCategoryParent'), id: idSchema, parentId: idSchema.nullable() }),
   z.strictObject({ ...commandBase, type: z.literal('reverseMovement'), operationId: idSchema, reason: name }),
   z.strictObject({ ...commandBase, type: z.literal('createGoal'), id: idSchema, name, accountId: idSchema, target: amountSchema, deadline: dateSchema }),
