@@ -1,3 +1,5 @@
+> Adendo aprovado pelo proprietário após as etapas iniciais: oferecer publicação Vercel com login e dados sincronizados entre PC e tablet, priorizando planos gratuitos. A versão 0.13 acrescenta esse modo separado do armazenamento local, com Supabase e configuração externa descrita em [VERCEL-E-SUPABASE.md](VERCEL-E-SUPABASE.md). O texto abaixo preserva a especificação original; suas restrições históricas de ausência de servidor não se aplicam ao novo modo solicitado.
+
 # PROMPT MASTER — DESENVOLVIMENTO DO DEXFIN
 ## Sistema pessoal de gestão financeira inteligente
 

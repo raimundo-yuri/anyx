@@ -50,7 +50,7 @@ export const stateSchema = z.strictObject({
 export type State = z.infer<typeof stateSchema>;
 export type Entry = State['entries'][number];
 export type Operation = State['operations'][number];
-export function isReversibleMovement(kind: Operation['kind']): boolean { return kind === 'income' || kind === 'expense' || kind === 'transfer'; }
+export function isReversibleMovement(kind: Operation['kind']): boolean { return ['income', 'expense', 'transfer', 'invoicePayment', 'reimbursement', 'purchaseRefund', 'cardCreditUse', 'personRefund'].includes(kind); }
 export const tableNames = Object.keys(stateSchema.shape) as (keyof State)[];
 export function emptyState(): State {
   return stateSchema.parse(Object.fromEntries(tableNames.map(key => [key, []])));

@@ -1,4 +1,16 @@
-# Arquitetura — versão 0.12.0
+# Arquitetura — versão 0.13.0
+
+## Modo nuvem e API da Vercel
+
+`config/deployment.ts` seleciona cloud somente no build `--mode cloud`. `infrastructure/repository.ts` e `observe-finance.ts` encaminham leituras/comandos à implementação apropriada. A versão Vercel exige cloud e não recua para armazenamento local quando falta configuração. `CloudGate` impede montar a interface financeira sem sessão.
+
+`api/auth.ts` e `api/finance.ts` são funções Node.js. O BFF usa dois clientes oficiais Supabase, um para Auth e outro com a chave de serviço exclusivamente para banco. A identidade é verificada via Auth a cada solicitação e deve corresponder ao proprietário confirmado. O navegador recebe somente um cookie selado AES-GCM/HttpOnly/Secure/SameSite Strict e um token CSRF em memória; não recebe credenciais Supabase ou tokens de acesso em JavaScript. A sessão tem registro de revogação e expiração absoluta de oito horas. Login público por cadastro não é oferecido; recuperação usa OTP por e-mail e revoga sessões antes de alterar a senha. Um fator MFA verificado é recusado enquanto não houver suporte ao desafio, inclusive em sessões anteriores.
+
+O servidor aplica o mesmo domínio puro a uma cópia integral do estado. Compara revisão no PostgreSQL e reavalia até três conflitos; prévias/restauração também verificam SHA-256 canônico. A função SQL de commit exige sessão ativa. Lotes de até 100 comandos são um único commit ou nenhuma alteração; recibos preservam idempotência. O estado é limitado a 2 MiB. O domínio não confia em IDs de usuário do corpo da requisição.
+
+`remote-repository.ts` mantém estado e revisão somente na memória, serializa gravações, consulta diferenças por revisão a cada 20 segundos quando visível e ao retomar a aba. A API responde 304 sem corpo quando não mudou. Trocas de sessão invalidam resultados antigos. Sem conexão a tela financeira é bloqueada e nada é enfileirado. Um marcador local sem tokens ou registros permite repetir logout offline antes de consultar dados. O service worker usa somente a lista explícita de assets e não intercepta APIs financeiras.
+
+`vercel.json` fornece CSP, HSTS e outros cabeçalhos, além de no-store para API. Configuração, SQL e aceitação da infraestrutura estão em [Vercel e Supabase](VERCEL-E-SUPABASE.md). `server/test-support.ts` e `test-server.ts` são exclusivos dos testes e não são importados pelas funções de produção. Os testes de banco executam o SQL em PostgreSQL via PGlite, incluindo as negações de acesso pelos papéis anon/authenticated.
 
 ## Agenda, pendências e calendário
 
@@ -16,7 +28,7 @@
 
 Crédito no cartão é ativo sem caixa; valores a devolver são passivo. Ambos entram no patrimônio. O disponível continua caixa menos reservas, com obrigações informadas à parte; a projeção desconta o passivo com pessoas. Dashboard/orçamentos/relatórios mantêm consumo líquido assinado na data efetiva, inclusive meses negativos.
 
-Aplicação local React/TypeScript/Vite, CSS Modules e IndexedDB/Dexie. Não há backend, serviço bancário ou provedor de IA externa. Gráficos usam SVG e tabelas acessíveis, sem uma dependência adicional. O build usa chunks por seção e um vendor separado.
+Aplicação local React/TypeScript/Vite, CSS Modules e IndexedDB/Dexie. O build local usa IndexedDB; o build cloud usa as APIs da Vercel e Supabase. Não há serviço bancário ou provedor de IA externa. Gráficos usam SVG e tabelas acessíveis, sem uma dependência adicional. O build usa chunks por seção e um vendor separado.
 
 ## Camadas
 
@@ -49,9 +61,9 @@ Transações de escrita em tabelas compartilhadas são serializadas, inclusive e
 
 ## Persistência e migração
 
-Banco `dexfin`, esquema 5. O esquema 1 continua declarado; a atualização cria novas tabelas e deriva uma parcela para cada compra antiga sem mudar IDs, operações ou recibos. Compras novas geram todas as parcelas explícitas. Snapshots legados de backup também recebem essa adaptação. A migração v2→v3 adiciona o índice `operations.relatedId`, preservando registros e IDs. A operação `reversal` liga a correção ao original, e `contributions.cancelledById` registra os cancelamentos decorrentes. A migração v3→v4 adiciona o índice categories.parentId sem reescrever o histórico. A migração v4→v5 acrescenta purchaseRefunds e refundAllocations, sem alterar dados antigos. Backups novos usam envelope v5 estrito; o leitor aceita v2/v3/v4 e adapta o legado quando necessário. Bancos não são apagados/recriados automaticamente.
+Banco local `dexfin`, esquema 6; a passagem de 5 para 6 preserva os registros e fecha clientes antigos. O esquema 1 continua declarado; a atualização cria novas tabelas e deriva uma parcela para cada compra antiga sem mudar IDs, operações ou recibos. Compras novas geram todas as parcelas explícitas. Snapshots legados de backup também recebem essa adaptação. A migração v2→v3 adiciona o índice `operations.relatedId`, preservando registros e IDs. A operação `reversal` liga a correção ao original, e `contributions.cancelledById` registra os cancelamentos decorrentes. A migração v3→v4 adiciona o índice categories.parentId sem reescrever o histórico. A migração v4→v5 acrescenta purchaseRefunds e refundAllocations, sem alterar dados antigos. Backups novos usam envelope v6 estrito; o leitor aceita v2/v3/v4/v5 e adapta o legado quando necessário. Bancos não são apagados/recriados automaticamente.
 
-A validação do estado completo favorece integridade, mas seu custo cresce com o histórico. O adaptador deve ser medido e otimizado antes de uso com grande volume. A interface de repositório permite outro adaptador, mas autenticação/autorização multiusuário e resolução de conflitos não são fornecidas por essa abstração.
+A validação do estado completo favorece integridade, mas seu custo cresce com o histórico. O adaptador deve ser medido e otimizado antes de uso com grande volume. O adaptador remoto abaixo oferece autenticação restrita ao proprietário e comparação de revisão; não implementa colaboração multiusuário ou mesclagem arbitrária de estados.
 
 ## Observação e interface
 

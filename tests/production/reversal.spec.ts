@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { fixture, today, uid } from '../../src/test/finance-fixture';
+import { fixture, purchaseCommand, today, uid } from '../../src/test/finance-fixture';
 import { plainBackup } from '../../src/portability/backup';
+import { summary } from '../../src/domain/queries';
 import type { State } from '../../src/domain/model';
 
 async function nav(page: Page, label: string) {
@@ -25,6 +26,53 @@ async function openReversal(page: Page, description: string, reason: string) {
   await dialog.getByLabel('Confirmo que este lançamento foi registrado por engano e revisei os efeitos do estorno.', { exact: true }).check();
   return dialog;
 }
+async function exportedState(page: Page, path: string): Promise<State> {
+  await nav(page, 'Relatórios e backup');
+  await page.getByLabel('Criptografar backup com senha', { exact: true }).uncheck();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Baixar backup', exact: true }).click();
+  await (await download).saveAs(path);
+  return JSON.parse(await readFile(path, 'utf8')).state;
+}
+
+test('produção: corrige pagamento de fatura e reembolso com os originais preservados', async ({ page }, info) => {
+  const f = fixture(); f.run(purchaseCommand(f));
+  f.run({ type: 'invoicePayment', invoiceId: f.state.invoices[0].id, accountId: f.ids.account, amount: 15000, date: '2026-01-06', description: 'Fatura informada por engano' });
+  f.run({ type: 'reimbursement', receivableId: f.state.receivables[0].id, accountId: f.ids.account, amount: 6000, date: '2026-01-07', description: 'Reembolso informado por engano' });
+  await restore(page, f.state);
+  let dialog = await openReversal(page, 'Fatura informada por engano', 'Este pagamento não aconteceu');
+  await expect(dialog.getByRole('list', { name: 'Efeito do estorno nos compromissos' })).toContainText('Fatura pendente');
+  await dialog.getByRole('button', { name: 'Confirmar estorno', exact: true }).click(); await expect(dialog).not.toBeVisible();
+  dialog = await openReversal(page, 'Reembolso informado por engano', 'Este recebimento não aconteceu');
+  await expect(dialog.getByRole('list', { name: 'Efeito do estorno nos compromissos' })).toContainText('A receber da pessoa');
+  await dialog.getByRole('button', { name: 'Confirmar estorno', exact: true }).click(); await expect(dialog).not.toBeVisible();
+  await nav(page, 'Pessoas e recebíveis'); await expect(page.getByText('Correção de reembolso em 07/01/2026', { exact: true })).toBeVisible();
+  const state = await exportedState(page, info.outputPath('correcao-pagamentos.json'));
+  expect(summary(state)).toMatchObject({ cash: 100000, invoices: 30000, receivables: 18000, income: 0, expenses: 12000 });
+  for (const operation of f.state.operations) expect(state.operations.find(item => item.id === operation.id)).toEqual(operation);
+  for (const entry of f.state.entries) expect(state.entries.find(item => item.id === entry.id)).toEqual(entry);
+  await page.reload(); await nav(page, 'Contas e saldos'); await expect(page.getByTestId('accounts-total')).toHaveText(/1\.000,00/);
+});
+
+test('produção: crédito consumido bloqueia correção até desfazer sua aplicação incorreta', async ({ page }, info) => {
+  const f = fixture(); f.run(purchaseCommand(f)); const purchase = f.state.purchases[0];
+  f.run({ type: 'invoicePayment', invoiceId: purchase.invoiceId, accountId: f.ids.account, amount: 30000, date: '2026-01-06', description: 'Pagamento real' });
+  f.run({ type: 'purchaseRefund', purchaseId: purchase.id, invoiceId: purchase.invoiceId, amount: 30000, date: '2026-01-07', description: 'Crédito comercial incorreto', allocations: f.state.splits.map(item => ({ splitId: item.id, amount: item.amount })) });
+  f.run({ ...purchaseCommand(f), date: '2026-01-08' });
+  f.run({ type: 'cardCreditUse', invoiceId: purchase.invoiceId, amount: 1000, date: '2026-01-09', description: 'Aplicação incorreta do crédito' });
+  await restore(page, f.state);
+  let dialog = await openReversal(page, 'Crédito comercial incorreto', 'Crédito não confirmado');
+  await expect(dialog.getByRole('alert')).toBeVisible(); await expect(dialog.getByRole('button', { name: 'Confirmar estorno', exact: true })).toBeDisabled();
+  await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  dialog = await openReversal(page, 'Aplicação incorreta do crédito', 'Compensação não realizada');
+  await dialog.getByRole('button', { name: 'Confirmar estorno', exact: true }).click(); await expect(dialog).not.toBeVisible();
+  dialog = await openReversal(page, 'Crédito comercial incorreto', 'Crédito não confirmado');
+  await dialog.getByRole('button', { name: 'Confirmar estorno', exact: true }).click(); await expect(dialog).not.toBeVisible();
+  await nav(page, 'Cartões e faturas'); await expect(page.getByText('Crédito comercial incorreto · Corrigida por estorno')).toBeVisible();
+  const state = await exportedState(page, info.outputPath('correcao-credito.json'));
+  expect(summary(state)).toMatchObject({ cash: 70000, invoices: 30000, cardCredit: 0, receivables: 36000, expenses: 24000 });
+  expect(state.purchaseRefunds).toEqual(f.state.purchaseRefunds); expect(state.operations.filter(item => item.kind === 'reversal')).toHaveLength(2);
+});
 
 test('produção: estorno exige confirmação, preserva vínculo e sobrevive a backup e recarga', async ({ page }, info) => {
   test.setTimeout(60000);
@@ -61,7 +109,7 @@ test('produção: estorno exige confirmação, preserva vínculo e sobrevive a b
   const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'Baixar backup', exact: true }).click();
   const path = info.outputPath('backup-com-estorno.json'); await (await download).saveAs(path);
   const backup = JSON.parse(await readFile(path, 'utf8'));
-  expect(backup.version).toBe(5); expect(backup.state.operations.filter((item: { kind: string }) => item.kind === 'reversal')).toHaveLength(1);
+  expect(backup.version).toBe(6); expect(backup.state.operations.filter((item: { kind: string }) => item.kind === 'reversal')).toHaveLength(1);
   await restore(page, backup.state);
   await nav(page, 'Contas e saldos'); await expect(page.getByTestId('accounts-total')).toHaveText(/1\.000,00/);
   await page.reload(); await nav(page, 'Movimentações');

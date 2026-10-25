@@ -7,7 +7,7 @@ import { parseBRL, sum } from '../../domain/money';
 import { FinanceError } from '../../domain/errors';
 import { userError } from '../../application/user-error';
 import { displayDate, formatMoney } from '../../application/finance-view';
-import { localRepository } from '../../infrastructure/database';
+import { repository } from '../../infrastructure/repository';
 import { FinanceDialog } from './FinanceDialog';
 import { Field } from './Forms';
 import { today } from './finance-fields';
@@ -53,7 +53,7 @@ export function CreditAdjustmentForm({ state, mode, targetId, onClose, onSaved }
   async function save() {
     if (!preview || !confirmed || lock.current) return;
     lock.current = true; setBusy(true); setError('');
-    try { await localRepository.executeReviewed(preview.command, preview.snapshot); onSaved(); }
+    try { await repository.executeReviewed(preview.command, preview.snapshot); onSaved(); }
     catch (reason) { setError(userError(reason)); }
     finally { lock.current = false; setBusy(false); }
   }

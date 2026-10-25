@@ -1,4 +1,25 @@
-# Segurança e privacidade — revisão interna da versão 0.12.0
+# Segurança e privacidade — revisão interna da versão 0.13.0
+
+## Autenticação e nuvem — versão 0.13
+
+Existem dois modos. No build local/GitHub Pages, os controles locais abaixo continuam aplicáveis: IndexedDB legível pelo perfil, sem autenticação. No build cloud/Vercel, a base compartilhada fica no Supabase e a interface exige uma sessão verificada pelo servidor. Não há fallback local quando o servidor/configuração falha. O envio à nuvem foi solicitado pelo proprietário; não há migração automática dos registros antigos.
+
+| Ameaça na nuvem | Controle implementado | Limite |
+| --- | --- | --- |
+| Acesso sem login ou por outra conta | `getUser` no provedor a cada solicitação, proprietário por UUID e e-mail confirmado | Conta pessoal; cadastro público deve ser desativado no painel |
+| Roubo de tokens pelo armazenamento JS | Tokens em cookie AES-GCM autenticado, HttpOnly/Secure/SameSite Strict; segredo somente servidor | XSS ainda pode agir enquanto a sessão está aberta |
+| CSRF/origem externa | Origem exata, JSON/cabeçalho de cliente e token CSRF ligado à sessão | Origem/servidor/extensões comprometidos continuam sendo risco |
+| Força bruta | Contadores persistentes globais e por endereço HMAC, janela de 15 minutos e limites do Auth | Abuso pode temporariamente bloquear o proprietário; não é proteção distribuída comercial |
+| Cookie antigo após logout | Registro revogável, conferido antes do acesso e no commit SQL; oito horas máximas | Logout offline só é revogado ao reconectar ou expirar |
+| Acesso direto ao banco pelo navegador | RLS e REVOKE para anon/authenticated em tabelas e RPCs | Chave de serviço e administradores têm privilégio; proteger os painéis |
+| Perda de atualização entre dispositivos | Comparação atômica de revisão; prévias/restauração verificam hash; recibos idempotentes | Sem mesclagem arbitrária ou fila offline |
+| Dados remanescentes no PC compartilhado | Estado financeiro somente em memória, cache somente de assets, API no-store | Downloads e uma sessão em uso ainda podem ser observados pelo dispositivo |
+| Redefinição de senha | Código de recuperação Supabase, senha mínima de 12 caracteres e revogação antes de alterar | Entrega real e template precisam ser testados pelo proprietário |
+| MFA ignorado após habilitação externa | Identidade com fator verificado é recusada, inclusive para recuperação | Desafio/cadastro MFA no app ainda não implementado; MFA administrativo é independente |
+
+As credenciais Supabase não têm prefixo VITE e não são enviadas no bundle. Os clientes Auth e banco são separados para que login não substitua a autorização privilegiada do banco. Mensagens internas do provedor são sanitizadas; não adicionar logs de senha, corpo financeiro, cookies ou variáveis. Configuração inválida falha fechada, com 503. Limites: requisição 3 MiB, estado 2 MiB, lote 100 comandos. O motor valida relações e partidas novamente no servidor antes da gravação.
+
+Não há criptografia de ponta a ponta: Vercel/Supabase e administradores podem acessar o estado. O app não cria backups remotos automáticos. São testes internos de código, provedor simulado e permissões PostgreSQL; não equivalem a auditoria externa ou validação do projeto real ainda não configurado. Consulte [configuração, migração e aceitação da publicação](VERCEL-E-SUPABASE.md).
 
 ## Agenda e exportação de vencimentos
 
@@ -22,25 +43,25 @@ O arquivo é uma cópia: não registra pagamentos e não atualiza ou remove even
 | PWA / conteúdo antigo ou cache indevido | Cache somente de assets explícitos e atualização manual | Cache/dispositivo podem ser removidos; offline não é backup |
 | Dependências / cadeia de fornecimento | Versões exatas, lockfile, TLS/verificações preservadas e auditoria npm | Vulnerabilidades desconhecidas e comprometimento de origem |
 
-Não há backend, analytics, scripts/fontes externos, acesso bancário ou IA externa. Não armazenar senhas bancárias. Variáveis VITE_ são públicas. Um bloqueio visual de tela não impediria acesso ao perfil; não há login fictício para alegar proteção do IndexedDB.
+No modo local não há backend; no cloud há API Vercel e Supabase. Não há analytics, scripts/fontes externos, acesso bancário ou IA externa. Não armazenar senhas bancárias. Variáveis VITE_ são públicas. Um bloqueio visual de tela não impediria acesso ao perfil; não há login fictício para alegar proteção do IndexedDB.
 
 ## Integridade de estornos de correção
 
-Receitas, despesas e transferências admitem estorno integral com motivo, prévia e confirmação. O original é preservado, e as entradas inversas precisam corresponder exatamente a referências, categorias e centavos. A unicidade por original é verificada na transação serializada, além da chave idempotente. Cancelamentos de contribuição apontam para o estorno correspondente; valores pagos permanecem registrados.
+Receitas, despesas, transferências, pagamentos de fatura, reembolsos, devoluções comerciais, aplicações de crédito e devoluções a pessoas admitem estorno integral com motivo, prévia e confirmação. O original é preservado, e as entradas inversas precisam corresponder exatamente a referências, categorias e centavos. A unicidade por original é verificada na transação serializada, além da chave idempotente. Cancelamentos de contribuição apontam para o estorno correspondente; valores pagos permanecem registrados.
 
-Migrações v1/v2/v3/v4→v5 preservam dados. Backups novos usam envelope v5 estrito e o leitor mantém compatibilidade com v2/v3/v4. Isso não cria uma trilha criptográfica inviolável: quem controla o perfil pode modificar o armazenamento. A confirmação do operador pode estar errada; não há validação bancária automática.
+Migrações v1/v2/v3/v4/v5→v6 preservam dados. Backups novos usam envelope v6 estrito e o leitor mantém compatibilidade com v2/v3/v4/v5. Isso não cria uma trilha criptográfica inviolável: quem controla o perfil pode modificar o armazenamento. A confirmação do operador pode estar errada; não há validação bancária automática.
 
 ## Integridade de devoluções comerciais — versão 0.11
 
 Rateio por divisão, limites acumulados, cartão/fatura, lançamentos e saldos em cada corte diário são verificados também ao restaurar backup. O valor recebido de terceiro e o cancelado são distintos; excesso recebido vira obrigação a devolver. Crédito com o emissor não é caixa. Novos eventos preservam pagamentos, parcelas e IDs originais.
 
-A prévia usa o motor validado; a confirmação compara o estado dentro da transação, com recibo idempotente e rollback de todas as tabelas em falha. Mudança entre abas exige outra revisão. Créditos retroativos anteriores a movimentos relacionados são recusados quando exigiriam reclassificação do histórico; eventos do mesmo dia são agrupados. Isso não substitui conferir a fatura real nem oferece correção automática para um estorno comercial informado incorretamente.
+A prévia usa o motor validado; a confirmação compara o estado dentro da transação, com recibo idempotente e rollback de todas as tabelas em falha. Mudança entre abas exige outra revisão. Créditos retroativos anteriores a movimentos relacionados são recusados quando exigiriam reclassificação do histórico; eventos do mesmo dia são agrupados. Isso não substitui conferir a fatura real e não é uma correção automática: o operador deve conferir a prévia do estorno de correção, inclusive dependências e saldos históricos.
 
 ## Backup e exclusão
 
 Backup cifrado usa PBKDF2-SHA-256/310.000 iterações, chave AES-GCM 256 bits, salt 16 bytes e IV 12 bytes, aleatórios por exportação. A senha fica apenas no formulário durante a ação e é limpa após exportar/restaurar com sucesso. Perder a senha impede recuperar o arquivo. Consulte PORTABILIDADE.md para formato, limites e recuperação.
 
-Exclusão financeira exige digitar APAGAR e limpa as tabelas numa transação, sem fingir remover cópias externas. O cache da aplicação, que não contém registros financeiros, pode continuar presente. Exclusão/exportação de um perfil não afeta outros dispositivos/origens.
+Exclusão financeira exige digitar APAGAR e limpa as tabelas numa transação, sem fingir remover cópias externas. O cache da aplicação, que não contém registros financeiros, pode continuar presente. No modo local, exclusão de um perfil não afeta outros dispositivos/origens. Na nuvem, exclusão e restauração substituem a base compartilhada; cópias externas permanecem.
 
 ## Tratamento de erros
 
@@ -63,7 +84,7 @@ O build foi exercitado com IndexedDB nativo e CSP, incluindo texto HTML importad
 
 Não foram encontrados usos de HTML arbitrário, eval, armazenamento de senha em localStorage/sessionStorage ou serviços externos no código de aplicação revisado. A busca estática auxilia a revisão e não prova ausência de vulnerabilidades. Os registros de validação estão em PROGRESSO.md.
 
-Não se afirma auditoria externa, segurança comercial/multiusuário, cobertura contra todas as falhas ou suporte já validado em todos os navegadores. A configuração HTTP de uma futura hospedagem precisa ser validada no destino; consulte INSTALACAO-E-MANUTENCAO.md.
+Não se afirma auditoria externa, segurança comercial/multiusuário, cobertura contra todas as falhas ou suporte já validado em todos os navegadores. Os cabeçalhos da Vercel estão declarados, mas precisam ser validados no domínio real; consulte INSTALACAO-E-MANUTENCAO.md.
 
 ## Importação OFX, conferência e lembretes — versão 0.10
 

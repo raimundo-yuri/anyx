@@ -69,7 +69,7 @@ describe('Subcategorias integradas ao domínio e aos relatórios', () => {
     const f = fixture(), legacy = JSON.parse(plainBackup(f.state)); legacy.version = 3;
     expect(await readBackup(JSON.stringify(legacy))).toEqual(f.state);
     f.run({ type: 'createCategory', id: uid(), name: 'Filha', kind: 'expense', parentId: f.ids.expense });
-    const backup = plainBackup(f.state); expect(JSON.parse(backup).version).toBe(5);
+    const backup = plainBackup(f.state); expect(JSON.parse(backup).version).toBe(6);
     expect(await readBackup(backup)).toEqual(f.state);
     await expect(readBackup(JSON.stringify({ ...JSON.parse(backup), version: 3 }))).rejects.toThrow(/versão 4/);
   });

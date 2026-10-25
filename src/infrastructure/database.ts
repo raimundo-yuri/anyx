@@ -28,6 +28,7 @@ export class FinanceDatabase extends Dexie {
     this.version(3).stores({ operations: 'id, date, kind, relatedId' });
     this.version(4).stores({ categories: 'id, kind, parentId' });
     this.version(5).stores({ purchaseRefunds: 'id, &operationId, purchaseId, invoiceId', refundAllocations: 'id, refundId, splitId, &[refundId+splitId]' });
+    this.version(6).stores({ operations: 'id, date, kind, relatedId' });
     // Do not silently close a stale tab and let it keep pretending writes are available.
     this.on('versionchange', () => { this.close(); });
   }

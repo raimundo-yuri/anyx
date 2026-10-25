@@ -1,8 +1,8 @@
 # Instalação, primeiros passos e manutenção — 0.12.0
 
-A versão 0.12 acrescenta agenda/central de pendências e exportação .ics sem serviço externo ou configuração adicional. O esquema local e o formato do backup continuam em 5. Na PWA, a atualização inclui o novo módulo e seu cache estático. .ics é uma cópia de agenda e não substitui backup/restauração.
+A versão 0.13 acrescenta preparação Vercel/Supabase com login/sincronização e correções de pagamentos, reembolsos e devoluções. O esquema local e o formato do backup passam para 6. Na PWA, a atualização inclui o novo módulo e seu cache estático. .ics é uma cópia de agenda e não substitui backup/restauração.
 
-O DexFin está preparado para uso pessoal local no navegador. A publicação no GitHub Pages já está ativa em https://raimundo-yuri.github.io/anyx/ para computador e celular. Não há nova ativação a cada versão. Não há cadastro externo, serviço pago ou credencial bancária a configurar. O ambiente de desenvolvimento já preparado pode continuar sendo usado; publicar configurações desse ambiente não publica o aplicativo nem transfere os registros do navegador.
+O DexFin está preparado para uso pessoal local no navegador. A publicação no GitHub Pages já está ativa em https://raimundo-yuri.github.io/anyx/ para computador e celular. Não há nova ativação a cada versão. No modo local não há cadastro externo ou credencial bancária a configurar. Para a Vercel, siga [Vercel e Supabase](VERCEL-E-SUPABASE.md); o projeto e as variáveis precisam ser configurados pelo proprietário antes do acesso. O ambiente de desenvolvimento já preparado pode continuar sendo usado; publicar configurações desse ambiente não publica o aplicativo nem transfere os registros do navegador.
 
 ## Executar em outro computador
 
@@ -37,7 +37,7 @@ Não é necessário criar `.env` para usar os padrões. Para personalizar, copie
 
 Se registrar uma receita, despesa ou transferência por engano, use **Movimentações → Estornar**, revise os efeitos e confirme com um motivo. Depois registre os dados corretos, se necessário. O original permanece no histórico.
 
-A versão 0.12 mantém o esquema local 5 e backups v5, preservando leitura de backups v2/v3/v4. A agenda consulta os registros existentes, sem nova migração ou regravação do histórico. Faça um backup antes de atualizar e feche formulários/abas antigas; versões anteriores à 0.11 não entendem as devoluções comerciais ou o esquema 5. Não retorne código antigo sobre um banco atualizado sem avaliar compatibilidade.
+A versão 0.13 usa esquema local 6 e backups v6, preservando leitura de backups v2/v3/v4/v5. A migração mantém o histórico e fecha clientes antigos; novas correções não são entendidas por leitores anteriores. Faça um backup antes de atualizar e feche formulários/abas antigas; versões anteriores à 0.11 não entendem as devoluções comerciais ou o esquema 5. Não retorne código antigo sobre um banco atualizado sem avaliar compatibilidade.
 
 O [guia de uso](USO.md) explica contribuições, parcelas, recebíveis, previsões, metas, empréstimos e investimentos. A tela inicial fica vazia até você cadastrar dados reais.
 
@@ -55,7 +55,7 @@ Os dados continuam em cada navegador, separados entre computador e celular. Cami
 
 O build em `dist/` está pronto para uma hospedagem estática com HTTPS, na raiz do domínio (`/`) por padrão. Copie todos os arquivos e subdiretórios, incluindo `sw.js`, manifesto e ícones. Para um subdiretório, gere com `npm run build -- --base=/caminho/`. O GitHub Pages usa `/anyx/`; o manifesto, os ícones, o escopo do service worker e o precache acompanham a base escolhida.
 
-Não envie `node_modules`, `.env`, fontes, backups ou diagnósticos para a pasta pública. A hospedagem não precisa receber nem armazenar seus registros financeiros. A publicação deste repositório é feita pelo fluxo do GitHub Pages, autorizado pelo proprietário. Outros provedores podem receber o mesmo build estático com a base adequada.
+Não envie `node_modules`, `.env`, fontes, backups ou diagnósticos para a pasta pública. A hospedagem não precisa receber nem armazenar seus registros financeiros. A publicação deste repositório é feita pelo fluxo do GitHub Pages, autorizado pelo proprietário. Outras hospedagens estáticas podem receber o build local. A Vercel exige o build cloud e as funções/configuração de servidor descritas no guia próprio.
 
 Configure estes cabeçalhos na hospedagem:
 
@@ -98,15 +98,15 @@ npm run test:pages
 npm audit --audit-level=moderate
 ```
 
-Os testes usam dados sintéticos em bancos/perfis isolados. Os runners precisam das portas locais 5174, 4174 e 4175 livres e de Chromium. Consulte o README para a configuração do executável neste ambiente. Falhas não autorizam apagar o perfil pessoal ou desligar TLS/verificações de dependências.
+Os testes usam dados sintéticos em bancos/perfis isolados. Os runners precisam das portas locais 5174, 4174, 4175 e 4186 livres e de Chromium. Consulte o README para a configuração do executável neste ambiente. Falhas não autorizam apagar o perfil pessoal ou desligar TLS/verificações de dependências.
 
 Para distribuir um arquivo no ambiente Linux, após validar o build:
 
 ```sh
 mkdir -p releases
-tar -czf releases/dexfin-0.12.0-web.tar.gz -C dist . -C .. LICENSE docs/LICENCAS-TERCEIROS.txt
-(cd releases && sha256sum dexfin-0.12.0-web.tar.gz > dexfin-0.12.0-web.tar.gz.sha256)
-(cd releases && sha256sum -c dexfin-0.12.0-web.tar.gz.sha256)
+tar -czf releases/dexfin-0.13.0-web.tar.gz -C dist . -C .. LICENSE docs/LICENCAS-TERCEIROS.txt
+(cd releases && sha256sum dexfin-0.13.0-web.tar.gz > dexfin-0.13.0-web.tar.gz.sha256)
+(cd releases && sha256sum -c dexfin-0.13.0-web.tar.gz.sha256)
 ```
 
 O arquivo contém o site estático e as licenças de distribuição, sem incluir o IndexedDB do navegador. O checksum detecta alterações em relação ao arquivo original recebido; sozinho não autentica a origem. Preserve também o código-fonte/lockfile da versão para manutenção.
@@ -124,5 +124,7 @@ Ao relatar um problema, informe versão, navegador, ação e mensagem observada.
 ## Atualizações e responsabilidades
 
 O desenvolvimento, os testes, o incremento de versão e o envio ao GitHub podem ser realizados nas rodadas desta conversa dentro do escopo autorizado. O fluxo do Pages publica o commit depois que suas verificações passam. Isso não implica trabalho de desenvolvimento em segundo plano após encerrar uma rodada.
+
+Na Vercel, envios para main poderão gerar novos deploys após o usuário importar o repositório e configurar a integração. Mudanças de SQL/env exigem seguir as notas da versão; um rollback de código não reverte migrações ou desfaz registros. A implantação externa desta versão ainda depende da configuração inicial.
 
 O usuário mantém suas cópias de backup, confere os lançamentos reais e aplica a atualização da PWA quando o navegador oferecer o botão, com formulários salvos/fechados. Uma nova configuração ou permissão exclusiva da conta pode exigir intervenção pontual; não é necessário reconfirmar cada melhoria gratuita já autorizada. O site pode ser instalado pelo navegador sem Play Store e sem taxa de cadastro de loja.

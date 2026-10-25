@@ -17,7 +17,9 @@ export function localPwa(name: string): Plugin {
         { tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" }, injectTo: 'head-prepend' },
       ]; },
     },
-    generateBundle() {
+    async generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'LICENSE.txt', source: await readFile(resolve('LICENSE'), 'utf8') });
+      this.emitFile({ type: 'asset', fileName: 'LICENCAS-TERCEIROS.txt', source: await readFile(resolve('docs/LICENCAS-TERCEIROS.txt'), 'utf8') });
       this.emitFile({ type: 'asset', fileName: 'manifest.webmanifest', source: JSON.stringify({ id: base, name, short_name: name, description: 'Finanças pessoais com clareza e privacidade.', lang: 'pt-BR', start_url: base, scope: base, display: 'standalone', theme_color: '#101512', background_color: '#101512', icons: [192, 512].map(size => ({ src: `${base}icon-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'any maskable' })) }) });
     },
     async closeBundle() {

@@ -124,7 +124,7 @@ describe('Devolução comercial de cartão e terceiros', () => {
     delete legacy.state.purchaseRefunds; delete legacy.state.refundAllocations;
     expect(await readBackup(JSON.stringify(legacy))).toEqual(f.state);
     f.run(refund());
-    expect(JSON.parse(plainBackup(f.state)).version).toBe(5);
+    expect(JSON.parse(plainBackup(f.state)).version).toBe(6);
     expect(await readBackup(plainBackup(f.state))).toEqual(f.state);
     expect(await readBackup(await encryptedBackup(f.state, 'teste seguro 123'), 'teste seguro 123')).toEqual(f.state);
     expect(parseCsv(exportCsv(f.state, 'refundAllocations'))).toHaveLength(4);

@@ -1,7 +1,7 @@
 import type { Command, Entry, Operation, State } from './model';
 import type { Context } from './engine';
 import { ensure, requireRecord } from './integrity';
-import { balance } from './queries';
+import { activeRefundAllocations, balance } from './queries';
 import { sum } from './money';
 
 type RefundCommand = Extract<Command, { type: 'purchaseRefund' | 'cardCreditUse' | 'personRefund' }>;
@@ -11,7 +11,7 @@ export function stateAt(state: State, date: string): State {
   const ids = new Set(state.operations.filter(item => item.date <= date).map(item => item.id));
   return { ...state, entries: state.entries.filter(item => ids.has(item.operationId)) };
 }
-export function refundedSplit(state: State, splitId: string) { return sum(state.refundAllocations.filter(item => item.splitId === splitId).map(item => item.amount)); }
+export function refundedSplit(state: State, splitId: string) { return sum(activeRefundAllocations(state).filter(item => item.splitId === splitId).map(item => item.amount)); }
 
 /** A commercial credit keeps original installments and cash payments untouched. */
 export function cardRefundCommand(state: State, command: RefundCommand, context: Context, hooks: Hooks): string {
@@ -97,7 +97,7 @@ export function assertCardRefunds(state: State): void {
     post('card', invoice.id, 'debit', reduction); post('cardCredit', invoice.cardId, 'debit', refund.amount - reduction);
     for (const allocation of allocations) {
       const split = requireRecord(state.splits, allocation.splitId, 'Divisão estornada');
-      ensure(split.purchaseId === purchase.id && refundedSplit(state, split.id) <= split.amount, 'Estorno excedente ou de outra compra.');
+      ensure(split.purchaseId === purchase.id && allocation.amount <= split.amount && refundedSplit(state, split.id) <= split.amount, 'Estorno excedente ou de outra compra.');
       if (!split.personId) post('expense', split.categoryId!, 'credit', allocation.amount, split.categoryId);
       else {
         const receivable = state.receivables.find(item => item.splitId === split.id)!;
@@ -129,21 +129,22 @@ export function assertCardRefunds(state: State): void {
   for (const receivable of state.receivables) {
     const refunds = state.refundAllocations.filter(item => item.splitId === receivable.splitId);
     if (!refunds.length) continue;
+    const activeIds = new Set(activeRefundAllocations(state).map(item => item.id));
     const entries = state.entries.filter(item => ['receivable', 'personPayable'].includes(item.ledger) && item.referenceId === receivable.id);
     const dates = new Set(entries.map(item => operations.get(item.operationId)!.date));
     for (const allocation of refunds) dates.add(operations.get(state.purchaseRefunds.find(item => item.id === allocation.refundId)!.operationId)!.date);
     let principal = 0, cancelled = 0, received = 0, returned = 0, pending = 0, payable = 0;
     for (const date of [...dates].sort()) {
-      cancelled = sum([cancelled, ...refunds.filter(item => operations.get(state.purchaseRefunds.find(refund => refund.id === item.refundId)!.operationId)!.date === date).map(item => item.amount)]);
+      cancelled = sum([cancelled, ...refunds.filter(item => activeIds.has(item.id) && operations.get(state.purchaseRefunds.find(refund => refund.id === item.refundId)!.operationId)!.date === date).map(item => item.amount)]);
       for (const entry of entries.filter(item => operations.get(item.operationId)!.date === date)) {
         const kind = operations.get(entry.operationId)!.kind;
         if (entry.ledger === 'receivable') {
           pending = sum([pending, entry.side === 'debit' ? entry.amount : -entry.amount]);
           if (kind === 'purchase') principal = sum([principal, entry.amount]);
-          if (kind === 'reimbursement') received = sum([received, entry.amount]);
+          if (kind === 'reimbursement' || (kind === 'reversal' && operations.get(operations.get(entry.operationId)!.relatedId!)?.kind === 'reimbursement')) received = sum([received, entry.side === 'credit' ? entry.amount : -entry.amount]);
         } else {
           payable = sum([payable, entry.side === 'credit' ? entry.amount : -entry.amount]);
-          if (kind === 'personRefund') returned = sum([returned, entry.amount]);
+          if (kind === 'personRefund' || (kind === 'reversal' && operations.get(operations.get(entry.operationId)!.relatedId!)?.kind === 'personRefund')) returned = sum([returned, entry.side === 'debit' ? entry.amount : -entry.amount]);
         }
       }
       const adjusted = sum([principal, -cancelled]);

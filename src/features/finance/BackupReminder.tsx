@@ -1,3 +1,4 @@
+import { cloudMode } from '../../config/deployment';
 import { useEffect, useRef, useState } from 'react';
 import type { State } from '../../domain/model';
 import { appConfig } from '../../config/app';
@@ -58,7 +59,7 @@ export function BackupReminder({ mode = 'banner', onOpenBackup }: { mode?: 'bann
   return <>
     {reminder?.shouldShow && <aside aria-label="Lembrete de backup" className={`${styles.notice} ${styles.backupReminder}`} style={{ marginTop: 20 }}><div>
       <strong>{reminder.reason === 'never' ? 'Guarde uma cópia dos seus registros' : reminder.hasChanges ? 'Há alterações para guardar em um novo backup' : 'Revise sua cópia de backup'}</strong>
-      <p>{status.lastRequested ? `O último download foi solicitado há ${reminder.daysSinceRequest} dias. ${reminder.hasChanges ? 'Seus dados mudaram desde então.' : 'Não foi possível comparar os registros com a última solicitação; confira se precisa guardar uma cópia atual.'}` : 'Solicite um backup com senha em Relatórios e backup. Depois confira e guarde o arquivo; os registros do navegador podem ser perdidos ao limpar o site ou trocar de dispositivo.'}</p>
+      <p>{status.lastRequested ? `O último download foi solicitado há ${reminder.daysSinceRequest} dias. ${reminder.hasChanges ? 'Seus dados mudaram desde então.' : 'Não foi possível comparar os registros com a última solicitação; confira se precisa guardar uma cópia atual.'}` : cloudMode ? 'Solicite um backup com senha em Relatórios e backup. A sincronização não substitui uma cópia protegida; confira e guarde o arquivo fora do aplicativo.' : 'Solicite um backup com senha em Relatórios e backup. Depois confira e guarde o arquivo; os registros do navegador podem ser perdidos ao limpar o site ou trocar de dispositivo.'}</p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {onOpenBackup && <button className={styles.secondary} onClick={onOpenBackup}>Abrir backup</button>}
         <button className={styles.secondary} onClick={() => { postponeBackupReminder(); setStatus(readBackupStatus()); }}>Adiar por 24 horas</button>

@@ -25,9 +25,11 @@ const versionThree = { ...versionTwo, operations: 'id, date, kind, relatedId' };
 
 const versionFour = { ...versionThree, categories: 'id, kind, parentId' };
 
-it.each([1, 2, 3, 4])('atualiza banco v%i para v5 preservando compras, saldos e idempotência', async version => {
+const versionFive = { ...versionFour, purchaseRefunds: 'id, &operationId, purchaseId, invoiceId', refundAllocations: 'id, refundId, splitId, &[refundId+splitId]' };
+
+it.each([1, 2, 3, 4, 5])('atualiza banco v%i para v6 preservando compras, saldos e idempotência', async version => {
   const name = `dexfin-migration-${uid()}`, legacy = new Dexie(name);
-  legacy.version(version).stores(version === 1 ? versionOne : version === 2 ? versionTwo : version === 3 ? versionThree : versionFour);
+  legacy.version(version).stores(version === 1 ? versionOne : version === 2 ? versionTwo : version === 3 ? versionThree : version === 4 ? versionFour : versionFive);
   const f = fixture(), command = { ...purchaseCommand(f), installmentCount: version === 1 ? 1 : 3 }; f.run(command);
   const current = new FinanceDatabase(name);
   try {
@@ -35,7 +37,7 @@ it.each([1, 2, 3, 4])('atualiza banco v%i para v5 preservando compras, saldos e 
     for (const table of legacy.tables) await table.bulkPut(f.state[table.name as keyof typeof f.state]);
     legacy.close();
     const repository = new IndexedDbFinanceRepository(current), state = await repository.read();
-    expect(current.verno).toBe(5);
+    expect(current.verno).toBe(6);
     expect(current.rows('categories').schema.indexes.some(index => index.name === 'parentId')).toBe(true);
     expect(current.rows('operations').schema.indexes.some(index => index.name === 'relatedId')).toBe(true);
     expect(state.purchaseRefunds).toEqual([]); expect(state.refundAllocations).toEqual([]);

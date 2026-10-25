@@ -109,13 +109,13 @@ describe('Estorno integral de correção', () => {
 
   it('recusa tipos fora do escopo, estorno de estorno, motivo vazio e data arbitrária', () => {
     const f = fixture(); f.run(purchaseCommand(f));
-    for (const operationId of [f.state.operations[0].id, f.state.purchases[0].operationId]) expect(() => f.run({ type: 'reverseMovement', operationId, reason: 'Incorreta' })).toThrow(/receitas, despesas e transferências/);
+    for (const operationId of [f.state.operations[0].id, f.state.purchases[0].operationId]) expect(() => f.run({ type: 'reverseMovement', operationId, reason: 'Incorreta' })).toThrow(/não admite correção/);
     const { resultId } = f.run({ type: 'expense', accountId: f.ids.account, categoryId: f.ids.expense, amount: 1000, date: today, description: 'Incorreta' });
     expect(() => f.run({ type: 'reverseMovement', operationId: resultId, reason: '  ' })).toThrow();
     expect(() => f.run({ type: 'reverseMovement', operationId: resultId, reason: 'Incorreta', date: '2026-02-01' })).toThrow();
     expect(() => f.run({ type: 'reverseMovement', operationId: uid(), reason: 'Incorreta' })).toThrow(/não encontrado/);
     const reversal = f.run({ type: 'reverseMovement', operationId: resultId, reason: 'Incorreta' });
-    expect(() => f.run({ type: 'reverseMovement', operationId: reversal.resultId, reason: 'Voltar' })).toThrow(/receitas, despesas e transferências/);
+    expect(() => f.run({ type: 'reverseMovement', operationId: reversal.resultId, reason: 'Voltar' })).toThrow(/não admite correção/);
   });
 
   it('valida a inversão exata, a data e a unicidade mesmo em snapshots importados', () => {

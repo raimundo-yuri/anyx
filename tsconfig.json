@@ -32,6 +32,10 @@
     "playwright.production.config.ts",
     "tests/production",
     "playwright.pages.config.ts",
-    "tests/pages"
+    "tests/pages",
+    "api",
+    "server",
+    "tests/cloud",
+    "playwright.cloud.config.ts"
   ]
 }

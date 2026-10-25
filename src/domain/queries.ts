@@ -33,12 +33,22 @@ export function summary(state: State, period?: { from: string; to: string }) {
   };
 }
 
+export function activeRefundAllocations(state: State) {
+  const reversed = new Set(state.operations.filter(item => item.kind === 'reversal').map(item => item.relatedId));
+  const active = new Set(state.purchaseRefunds.filter(item => !reversed.has(item.operationId)).map(item => item.id));
+  return state.refundAllocations.filter(item => active.has(item.refundId));
+}
+export function netReimbursementIds(state: State) {
+  const originals = new Set(state.operations.filter(item => item.kind === 'reimbursement').map(item => item.id));
+  return new Set(state.operations.filter(item => originals.has(item.id) || (item.kind === 'reversal' && originals.has(item.relatedId!))).map(item => item.id));
+}
+
 export function receivablePlan(state: State, receivableId: string) {
   const receivable = state.receivables.find(item => item.id === receivableId);
   if (!receivable) return [];
-  const reimbursedIds = new Set(state.operations.filter(item => item.kind === 'reimbursement').map(item => item.id));
-  let paid = sum(state.entries.filter(item => reimbursedIds.has(item.operationId) && item.ledger === 'receivable' && item.referenceId === receivableId && item.side === 'credit').map(item => item.amount));
-  let cancelled = sum(state.refundAllocations.filter(item => item.splitId === receivable.splitId).map(item => item.amount));
+  const reimbursedIds = netReimbursementIds(state);
+  let paid = sum(state.entries.filter(item => reimbursedIds.has(item.operationId) && item.ledger === 'receivable' && item.referenceId === receivableId).map(item => item.side === 'credit' ? item.amount : -item.amount));
+  let cancelled = sum(activeRefundAllocations(state).filter(item => item.splitId === receivable.splitId).map(item => item.amount));
   const cancellations = new Map<string, number>();
   for (const part of state.receivableSchedules.filter(item => item.receivableId === receivableId).sort((a, b) => b.index - a.index)) {
     const amount = Math.min(cancelled, part.amount); cancelled -= amount; cancellations.set(part.id, amount);

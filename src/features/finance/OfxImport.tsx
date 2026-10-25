@@ -5,7 +5,7 @@ import { sum } from '../../domain/money';
 import { categoryPath } from '../../domain/categories';
 import { formatMoney, displayDate } from '../../application/finance-view';
 import { userError } from '../../application/user-error';
-import { localRepository } from '../../infrastructure/database';
+import { repository } from '../../infrastructure/repository';
 import { MAX_FILE_SIZE } from '../../portability/backup';
 import { decodeOfx, parseOfx, previewOfx, type OfxClassification, type OfxStatement } from '../../portability/ofx';
 import { Field } from './Forms';
@@ -92,14 +92,14 @@ export function OfxImport({ state }: { state: State }) {
           </article>;
         })}</div>
         <button className={styles.secondary} type="button" disabled={!accountId || !accountChecked || pending > 0} onClick={() => void action(async () => {
-          resetPreview(); setPreview(await previewOfx(statement, await localRepository.read(), accountId, choices));
+          resetPreview(); setPreview(await previewOfx(statement, await repository.read(), accountId, choices));
         })}>Validar e visualizar importação OFX</button>
         {preview && <>
           <p className={styles.notice}>Prévia OFX: {preview.rows} linhas, {preview.commands.length} novas, {preview.duplicates} duplicatas e {preview.ignored} ignoradas. Receitas novas: {formatMoney(sum(preview.commands.filter(command => command.type === 'income').map(command => 'amount' in command ? command.amount : 0)))}. Despesas novas: {formatMoney(sum(preview.commands.filter(command => command.type === 'expense').map(command => 'amount' in command ? command.amount : 0)))}.</p>
           <p className={styles.hint}>Nada foi importado ainda. O lote inteiro é validado e gravado numa transação. Receitas elegíveis podem gerar contribuições conforme suas regras atuais. O FITID reconhece repetições da mesma conta; mudar dados ou classificação de um identificador já importado causa conflito. Não reconhece automaticamente lançamentos digitados manualmente ou importados por CSV.</p>
           <label className={styles.checkbox}><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} />Revisei a conta e confirmo que os lançamentos selecionados são receitas/despesas reais.</label>
           <button className={styles.primary} type="button" disabled={!confirmed || preview.commands.length === 0} onClick={() => void action(async () => {
-            await localRepository.executeBatch(preview.commands); resetPreview(); setNotice('Lote OFX processado. Lançamentos já importados não foram repetidos; não houve gravações parciais.');
+            await repository.executeBatch(preview.commands); resetPreview(); setNotice('Lote OFX processado. Lançamentos já importados não foram repetidos; não houve gravações parciais.');
           })}>Confirmar importação OFX</button>
         </>}
       </>}

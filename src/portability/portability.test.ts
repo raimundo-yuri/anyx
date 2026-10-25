@@ -50,7 +50,7 @@ describe('Backup versionado e criptografia', () => {
     expect(await readBackup(JSON.stringify(legacy))).toEqual(f.state);
     const { resultId } = f.run({ type: 'expense', accountId: f.ids.account, categoryId: f.ids.expense, amount: 1250, date: today, description: 'Duplicada' });
     f.run({ type: 'reverseMovement', operationId: resultId, reason: 'Registro duplicado' });
-    const backup = plainBackup(f.state); expect(JSON.parse(backup).version).toBe(5);
+    const backup = plainBackup(f.state); expect(JSON.parse(backup).version).toBe(6);
     expect(await readBackup(backup)).toEqual(f.state);
     expect(await readBackup(await encryptedBackup(f.state, 'senha de teste 123'), 'senha de teste 123')).toEqual(f.state);
     await expect(readBackup(JSON.stringify({ ...JSON.parse(backup), version: 2 }))).rejects.toThrow(/versão 3/);

@@ -14,3 +14,7 @@ playwright-report/
 test-results-production/
 test-results-pages/
 releases/
+
+dist-cloud/
+test-results-cloud/
+.vercel/

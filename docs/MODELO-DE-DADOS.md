@@ -1,4 +1,12 @@
-# Modelo de dados — esquema 5 (com histórico das bases v1/v2/v3/v4)
+# Modelo de dados — esquema 6 (com histórico das bases v1–v5)
+
+## Atualização v6 — correções e armazenamento remoto
+
+O esquema local 6 mantém as tabelas e os registros de v5, fechando conexões antigas ao atualizar. Operações `reversal` também podem apontar a pagamentos de fatura, reembolsos, devoluções comerciais, aplicações de crédito e devoluções a pessoas. As entradas são exatamente inversas e o original, alocações e recibos permanecem. Consultas financeiras excluem alocações de devoluções corrigidas e descontam reembolsos/devoluções de dinheiro corrigidos; não apagam eventos. O backup atual é v6, com leitura v2–v5; envelopes antigos não podem ocultar esses novos eventos.
+
+No Supabase, `dexfin_state` contém um snapshot do mesmo estado validado, revisão inteira e formato 6, por UUID de usuário. `dexfin_sessions` registra validade/revogação por identificador aleatório; tokens do provedor não são colunas do banco. `dexfin_limits` guarda contadores por janela e chave opaca. O SQL em `supabase/001_cloud.sql` restringe acesso ao servidor. O snapshot remoto não é IndexedDB nem um banco novo em cada dispositivo. Limite de aplicação: 2 MiB, com gravação atômica por comparação de revisão e sessão válida.
+
+As seções seguintes descrevem o histórico dos esquemas.
 
 ## Atualização v5 — devolução comercial de cartão
 

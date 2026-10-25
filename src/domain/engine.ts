@@ -73,7 +73,7 @@ export function execute(input: State, raw: unknown, context: Context): Execution
     }
     case 'reverseMovement': {
       const original = record(state.operations, command.operationId, 'Lançamento original');
-      ensure(isReversibleMovement(original.kind), 'O estorno de correção está disponível para receitas, despesas e transferências.');
+      ensure(isReversibleMovement(original.kind), 'Este tipo de registro ainda não admite correção por estorno.');
       ensure(!reversalFor(state, original.id), 'Este lançamento já foi estornado.');
       const originalEntries = state.entries.filter(item => item.operationId === original.id);
       for (const item of originalEntries.filter(item => item.ledger === 'cash')) account(item.referenceId);

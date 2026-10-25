@@ -1,4 +1,10 @@
-# Como usar — versão 0.12.0
+# Como usar — versão 0.13.0
+
+## Login e correções — versão 0.13
+
+Na publicação Vercel configurada, entre com a mesma conta no PC e no tablet. A base vem da nuvem e exige conexão; **Atualizar dados** confere imediatamente alterações do outro dispositivo. Ao terminar, use **Sair deste dispositivo**; em **Privacidade**, é possível **Encerrar sessões em todos os dispositivos**. Para migrar do GitHub Pages, baixe um backup e restaure uma única vez na nuvem. Restauração/exclusão na nuvem afetam todos os dispositivos. Instruções e limites: [Vercel e Supabase](VERCEL-E-SUPABASE.md).
+
+Em **Movimentações → Estornar**, também é possível corrigir pagamentos de fatura, reembolsos, devoluções comerciais, aplicação de crédito e devolução a pessoas registrados por engano. Revise os efeitos em caixa, fatura, crédito e valores da pessoa; informe o motivo e confirme. O original permanece e o ajuste integral usa sua data financeira. Se um crédito já tiver sido consumido, o estorno pode ficar bloqueado por dependências. Corrija primeiro somente os fatos dependentes que também estiverem errados; não estorne um fato real apenas para liberar outro. Compra original, contribuição paga, empréstimos, investimentos e saldo inicial ainda não admitem esse fluxo.
 
 ## Agenda e pendências
 
@@ -8,7 +14,7 @@ Filtre por tipo/situação ou busque descrição, pessoa e conta. **Calendário 
 
 Valores representam o que falta **agora**, nas datas cadastradas. Não são saldos reconstituídos do mês escolhido: um pagamento feito depois retira a pendência também de um mês passado. A fatura aparece uma vez por ciclo com o restante a pagar; o plano de reembolso segue seu próprio cronograma, com pagamentos e cancelamentos aplicados. Metas mostram quanto falta reservar, sem tratar isso como despesa. Entradas são esperadas e não entram no caixa antes do recebimento real.
 
-**Abrir em…** leva à seção de origem, onde você confere e registra o fato efetivamente realizado. Consultar, filtrar ou exportar a agenda não confirma pagamentos, recebimentos, reservas ou previsões. Uma alteração em outra aba atualiza a lista. A data de referência considera o fuso do aplicativo e é revista ao retomar a aba e ao mudar de dia. A consulta funciona offline após a preparação da PWA.
+**Abrir em…** leva à seção de origem, onde você confere e registra o fato efetivamente realizado. Consultar, filtrar ou exportar a agenda não confirma pagamentos, recebimentos, reservas ou previsões. Uma alteração em outra aba atualiza a lista. A data de referência considera o fuso do aplicativo e é revista ao retomar a aba e ao mudar de dia. No modo local, a consulta funciona offline após a preparação da PWA; na nuvem, exige conexão.
 
 Para levar a seleção ao calendário de sua preferência, use **Baixar agenda (.ics)**. O arquivo inclui todos os itens com data que atendem aos filtros, inclusive os de outras páginas da lista. Itens sem prazo ficam fora do arquivo. Opcionalmente, marque **Pedir lembrete um dia antes dos eventos futuros**; o calendário decide se consegue importar os eventos e acionar esse lembrete.
 
@@ -16,7 +22,7 @@ O arquivo é uma **cópia daquele momento**. Não há conta conectada, envio aut
 
 O assistente local também consulta a mesma base de pendências para perguntas sobre agenda, datas ultrapassadas e próximos vencimentos. A resposta separa itens sem data e não registra fatos financeiros.
 
-O DexFin é local. Seus dados pertencem ao perfil e à origem do navegador; não há conta externa, integração bancária ou sincronização. Faça backups: limpar os dados do site, mudar porta/perfil ou perder o dispositivo pode retirar o acesso aos registros.
+No GitHub Pages/build local, os dados pertencem ao perfil e à origem do navegador. Na Vercel/build cloud, login e dados compartilhados usam Supabase; siga [a configuração da nuvem](VERCEL-E-SUPABASE.md). Não há integração bancária. Faça backups: limpar os dados do site, mudar porta/perfil ou perder o dispositivo pode retirar o acesso aos registros.
 
 ## Contas, categorias e movimentações
 
@@ -57,7 +63,7 @@ Uma previsão realizada vinculada ao original passa a mostrar **Realização est
 
 Cada original aceita um estorno. Repetição da mesma ação é idempotente; outra aba acompanha o resultado e não cria um segundo estorno. Não há estorno de estorno: para registrar um fato válido, crie um novo lançamento revisado.
 
-Este fluxo atende à correção integral de registros incorretos de caixa. Devoluções comerciais de compras no cartão têm o fluxo separado descrito ao fim deste guia. Correção de pagamentos de fatura/reembolso/contribuição, empréstimos, investimentos, saldo inicial e devoluções comerciais informadas incorretamente ainda exige evolução específica.
+Este fluxo atende à correção integral de receitas, despesas, transferências, pagamentos de fatura, reembolsos e registros de devolução/crédito incorretos. A devolução comercial efetiva de uma compra válida usa o fluxo separado ao fim deste guia; se esse registro estiver errado, pode ser corrigido por estorno na versão 0.13, respeitadas as dependências. Compra original, contribuição paga, empréstimos, investimentos e saldo inicial ainda exigem evolução específica.
 
 ## Cartões, compras compartilhadas e recebíveis
 
@@ -148,6 +154,6 @@ Exemplo: compra de R$ 300,00, sendo R$ 120,00 seus, R$ 100,00 de A e R$ 80,00 de
 
 Parcelas do cartão permanecem devidas: crédito comercial e cancelamento simples de parcelas são fatos diferentes. Não registre ambos para a mesma devolução. No plano prometido pela pessoa, a redução começa nas últimas parcelas e pagamentos são distribuídos por FIFO ao valor ajustado; a tela separa pago, cancelado e pendente.
 
-Registre créditos em ordem de data. Um estorno anterior a movimentos já registrados do mesmo cartão ou das divisões selecionadas é recusado, pois poderia exigir reclassificar pagamentos existentes. Valores do mesmo dia são agrupados; o app não reconstrói horários bancários. Devolução direta em conta, cancelamento simples de parcelas, contestação em análise, juros/tarifas e correção de uma devolução incorreta ainda exigem outro fluxo e não são suportados aqui.
+Registre créditos em ordem de data. Um estorno anterior a movimentos já registrados do mesmo cartão ou das divisões selecionadas é recusado, pois poderia exigir reclassificar pagamentos existentes. Valores do mesmo dia são agrupados; o app não reconstrói horários bancários. Devolução direta em conta, cancelamento simples de parcelas, contestação em análise e juros/tarifas ainda não são suportados. Para corrigir uma devolução registrada por engano, use Movimentações → Estornar e confira as dependências da prévia.
 
-Despesas e orçamento mostram consumo líquido na data do crédito: uma devolução de compra antiga pode deixar o mês atual negativo. Isso não é renda nem dinheiro novo em conta. A projeção conservadora desconta valores a devolver às pessoas; o indicador disponível continua sendo caixa menos reservas e mostra essas obrigações separadamente. Faça backup antes da atualização para esquema 5/backups v5 e não retorne código antigo sobre o banco atualizado.
+Despesas e orçamento mostram consumo líquido na data do crédito: uma devolução de compra antiga pode deixar o mês atual negativo. Isso não é renda nem dinheiro novo em conta. A projeção conservadora desconta valores a devolver às pessoas; o indicador disponível continua sendo caixa menos reservas e mostra essas obrigações separadamente. Faça backup antes da atualização para esquema 6/backups v6 e não retorne código antigo sobre o banco atualizado.

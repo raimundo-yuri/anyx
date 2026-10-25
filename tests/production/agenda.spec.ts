@@ -79,7 +79,7 @@ test('produção: agenda reúne fontes, filtra dia e exporta ICS sem alterar o b
   await nav(page, 'Relatórios e backup'); await page.getByLabel('Criptografar backup com senha', { exact: true }).uncheck();
   const pending = page.waitForEvent('download'); await page.getByRole('button', { name: 'Baixar backup', exact: true }).click();
   const path = info.outputPath('apos-agenda.json'); await (await pending).saveAs(path);
-  const exported = JSON.parse(await readFile(path, 'utf8')); expect(exported.version).toBe(5); expect(sorted(exported.state)).toEqual(sorted(f.state));
+  const exported = JSON.parse(await readFile(path, 'utf8')); expect(exported.version).toBe(6); expect(sorted(exported.state)).toEqual(sorted(f.state));
 });
 
 test('produção: pagamento em outra aba retira pendência, e a agenda funciona após recarga offline', async ({ page, context }) => {

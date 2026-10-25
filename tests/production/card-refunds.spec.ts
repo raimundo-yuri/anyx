@@ -84,7 +84,7 @@ test('produção: devolução paga gera crédito, obrigação com pessoa e compe
   await expect(page.getByText(/Crédito com o emissor: R\$\s250,00/)).toBeVisible();
   await expect(page.getByText('Crédito aplicado em fatura · 13/01/2026', { exact: true })).toBeVisible();
   const exported = await backup(page, info.outputPath('devolucoes.json'));
-  expect(exported.version).toBe(5); expect(summary(exported.state)).toMatchObject({ cash: 70000, cardCredit: 25000, personPayable: 0, invoices: 0, expenses: 5000, income: 0, netWorth: 95000 });
+  expect(exported.version).toBe(6); expect(summary(exported.state)).toMatchObject({ cash: 70000, cardCredit: 25000, personPayable: 0, invoices: 0, expenses: 5000, income: 0, netWorth: 95000 });
   for (const row of f.state.entries) expect(exported.state.entries.find((item: { id: string }) => item.id === row.id)).toEqual(row);
   expect(exported.state.purchaseRefunds).toHaveLength(1); expect(exported.state.installments.filter((item: { purchaseId: string }) => item.purchaseId === f.state.purchases[0].id)).toEqual(f.state.installments);
   await restore(page, exported.state); await page.reload(); await nav(page, 'Contas e saldos'); await expect(page.getByTestId('accounts-total')).toHaveText(/700,00/);

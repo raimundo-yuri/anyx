@@ -1,5 +1,7 @@
 # DexFin — etapa 1: decisões e plano de implementação
 
+> Atualização de prioridade aprovada: a versão 0.13 prepara Vercel + Supabase para login e sincronização pessoal entre PC e tablet, conforme [o guia](VERCEL-E-SUPABASE.md). A aceitação externa depende de configurar as contas e testar o domínio real.
+
 > Este é o plano original da etapa 1. Consulte PROGRESSO.md para o estado implementado atual.
 
 Status na elaboração do plano: planejamento concluído; implementação depende da aprovação solicitada na especificação, seção 22. Nenhuma funcionalidade descrita neste plano está implementada.

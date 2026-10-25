@@ -273,3 +273,37 @@ Esquema local 5 e envelope de backup v5 mantidos, sem migração nem dependênci
 O primeiro teste de navegador foi impedido por um falso diagnóstico de porta ocupada: o proxy do shell recebia as requisições de checagem de localhost, apesar de não existir processo ouvindo. A configuração do Playwright agora preserva o proxy externo e as exceções herdadas, acrescentando exceções apenas de loopback nos processos de teste. Nenhum serviço foi interrompido e não houve alteração da rede do aplicativo publicado. Na primeira rodada da interface, um localizador por texto de label não identificou o select; a seleção passou a usar o papel/nome acessível do controle. A regressão final acima foi executada depois das correções, sem falhas.
 
 Limites: agenda de pendências atuais, não extrato histórico; sem sincronização entre aparelhos ou calendários, push em segundo plano, Open Finance, XLSX, anexos ou amortização automática. A aplicação permanece local e o arquivo .ics não substitui um backup financeiro protegido.
+
+
+## Etapa 18 — correção de pagamentos e devoluções, versão 0.13.0
+
+A prioridade escolhida pelo proprietário para a conclusão do beta foi atendida: estorno integral de pagamentos de fatura, reembolsos, devoluções comerciais, utilização de crédito e dinheiro devolvido a pessoas. A correção mantém operações, lançamentos, rateios e recibos originais, cria entradas exatamente inversas na mesma data financeira e não fabrica receita ou consumo. As consultas descontam registros corrigidos sem apagá-los; cronogramas reabrem o valor correspondente.
+
+A prévia mostra efeitos em caixa, fatura, crédito e direitos/obrigações com pessoas, exige motivo e confirmação e compara o estado revisado na gravação. O domínio bloqueia dependências sem cobertura: corrigir um crédito já utilizado requer revisar primeiro os registros dependentes que também estiverem errados. Não autoriza desfazer um fato real para liberar outro. Compra original, contribuição paga, saldo inicial, empréstimos e investimentos ainda não admitem o fluxo.
+
+Esquema local 6 preserva dados dos esquemas 1–5 e fecha clientes antigos. Envelope de backup 6 preserva leitura 2–5 e recusa ocultar as novas correções sob formato antigo. Envelope criptografado segue em 1. Banco financeiro pessoal do usuário não foi acessado.
+
+## Etapa 19 — preparação Vercel, autenticação e sincronização, versão 0.13.0
+
+O proprietário solicitou explicitamente uso sincronizado entre tablet e PC do trabalho, com login e segurança de servidor, e informou já ter conta Vercel. O modo cloud usa funções Node.js da Vercel como API da mesma origem e Supabase para Auth/PostgreSQL. O modo local/GitHub Pages continua independente, com IndexedDB e offline. A Vercel recusa o build local; sem variáveis válidas a API bloqueia o acesso, sem enviar dados locais ou recuar para IndexedDB.
+
+Login é restrito a um UUID proprietário com e-mail confirmado. Tokens do provedor ficam em cookie AES-GCM autenticado, HttpOnly/Secure/SameSite Strict, com limite absoluto de oito horas e registro revogável no banco. O cliente guarda CSRF somente em memória. Escritas verificam origem, JSON/cabeçalho de cliente, CSRF e identidade real no provedor. Logout atual/global e recuperação por código revogam sessões; fatores MFA já verificados são recusados enquanto não houver desafio implementado, evitando liberação somente por senha. Cadastro público deve ser desativado no painel.
+
+A chave privilegiada fica apenas no servidor, em cliente separado do Auth. SQL cria RLS e revoga tabelas/RPCs de anon/authenticated. O servidor aplica o domínio validado e confirma por revisão atômica mais sessão ativa; conflitos são reavaliados e prévias desatualizadas exigem revisão. Limites iniciais: estado 2 MiB, lote 100 comandos e requisição 3 MiB. Lote inteiro é confirmado ou recusado. O navegador não persiste base financeira/tokens em IndexedDB/localStorage/cache; mantém snapshot em memória e consulta revisão a cada 20 segundos quando visível, ao retomar e manualmente. Offline bloqueia dados e não enfileira gravações. Logout offline usa marcador local sem dados financeiros para completar a revogação ao reconectar.
+
+`vercel.json`, SQL, exemplo de variáveis sem credenciais e [guia de configuração/migração/aceitação](VERCEL-E-SUPABASE.md) estão prontos. Recursos estáticos incluem licenças de distribuição nos dois builds. Dependências adicionadas: SDK oficial Supabase no servidor, PGlite e tsx somente para desenvolvimento/testes. Nenhuma chave real foi incluída ou solicitada na conversa.
+
+### Validação da versão 0.13.0
+
+- 244 testes de domínio, persistência, migrações, interface, API, contrato do SDK e SQL aprovados. O SQL foi executado em PostgreSQL via PGlite, incluindo bloqueio de acesso direto, revisão, revogação e limite de tentativas.
+- 20 testes de interface com IndexedDB nativo, desktop e viewport móvel, aprovados.
+- 48 testes distintos de produção local aprovados, incluindo quatro casos novos de correções financeiras; os testes de estorno/offline foram repetidos após ajuste de um seletor que exigia texto exato em um elemento com detalhes adicionais. Não houve perda de registros nesse diagnóstico.
+- 10 testes de nuvem, desktop/móvel, aprovados: autenticação, sessão protegida, duas sessões independentes compartilhando registros, logout atual/global, tentativa de reutilizar cookie revogado, reconexão e recuperação. Provedor Auth e armazenamento desses cenários são simulados; passam pelo servidor e motor reais do aplicativo.
+- 2 testes do caminho GitHub Pages e offline aprovados. Total: 324 testes distintos aprovados.
+- TypeScript e builds local, /anyx/ e cloud aprovados; npm audit sem vulnerabilidades conhecidas. Captura móvel do modo nuvem inspecionada. Os bundles públicos foram verificados para ausência de nomes de variáveis secretas, SDK Supabase e credenciais fictícias de teste.
+
+### Pendências externas para concluir o beta na nuvem
+
+Não há projeto Supabase ou implantação Vercel configurados por este ambiente. O proprietário precisa criar o projeto gratuito, executar o SQL, criar/confirmar seu usuário, desativar cadastro público, inserir variáveis somente no painel Vercel e importar o repositório. Recuperação depende do template numérico e da entrega real de e-mail, sujeita às restrições do remetente gratuito. Nenhuma contratação foi feita.
+
+A aceitação final exige conferir HTTPS/cabeçalhos, autenticação, e-mail e sincronização no domínio real com PC/tablet, além de migrar uma única vez o backup. Não se afirma teste em aparelhos físicos, todos os navegadores, auditoria externa, criptografia de ponta a ponta ou backup remoto automático. A preparação de código não equivale à publicação real na Vercel. O objetivo aprovado de nuvem está registrado e passa a orientar as próximas versões.

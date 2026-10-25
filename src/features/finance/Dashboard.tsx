@@ -1,3 +1,4 @@
+import { cloudMode } from '../../config/deployment';
 import { useMemo, useState, type ReactNode } from 'react';
 import { ArrowRight, CalendarDays, Plus, ShieldCheck } from 'lucide-react';
 import type { State } from '../../domain/model';
@@ -23,7 +24,7 @@ function Dashboard({ state, onNavigate }: { state: State; onNavigate: (page: str
   const categoryMax = Math.max(1, ...data.categories.map(item => Math.abs(item.amount)));
   const points = (key: 'income' | 'expenses') => data.trend.map((item, index) => `${40 + index * 100},${y(item[key])}`).join(' ');
   return <div className={styles.workspace}>
-    <div className={styles.toolbar}><p className={styles.muted}><ShieldCheck size={14} /> Seus registros, com clareza. Tudo permanece neste navegador.</p><div className={styles.toolbarActions}><label className={styles.filterLabel}>Período analisado<input type="month" aria-label="Período do dashboard" required min="0002-01" value={month} onChange={event => { if (event.target.value && event.target.value >= '0002-01') setMonth(event.target.value); }} /></label><button className={styles.primary} onClick={() => onNavigate('movements')}><Plus size={15} />Registrar movimentação</button></div></div>
+    <div className={styles.toolbar}><p className={styles.muted}><ShieldCheck size={14} /> {cloudMode ? 'Seus registros da conta, consultados na nuvem.' : 'Seus registros, com clareza. Tudo permanece neste navegador.'}</p><div className={styles.toolbarActions}><label className={styles.filterLabel}>Período analisado<input type="month" aria-label="Período do dashboard" required min="0002-01" value={month} onChange={event => { if (event.target.value && event.target.value >= '0002-01') setMonth(event.target.value); }} /></label><button className={styles.primary} onClick={() => onNavigate('movements')}><Plus size={15} />Registrar movimentação</button></div></div>
     <div className={`${styles.metrics} ${styles.fiveMetrics}`}>{[
       ['Saldo disponível', data.totals.available, 'Caixa atual menos reservas; faturas são mostradas separadamente.'],
       ['Receitas do período', data.totals.income, 'Valores efetivamente recebidos; sem transferências ou reembolsos.'],

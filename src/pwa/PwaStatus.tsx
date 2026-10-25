@@ -1,3 +1,4 @@
+import { cloudMode } from '../config/deployment';
 import { useEffect, useState } from 'react';
 import styles from '../features/finance/Finance.module.css';
 interface InstallPrompt extends Event { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }
@@ -32,8 +33,8 @@ export function PwaStatus() {
     };
   }, []);
   return <div className={styles.pwaStatus}>
-    {!online && <span>Offline · registros locais continuam disponíveis.</span>}
-    {ready && <span>Disponível offline neste navegador.</span>}
+    {!online && <span>{cloudMode ? 'Sem conexão · dados na nuvem exigem conexão para consultar e salvar.' : 'Offline · registros locais continuam disponíveis.'}</span>}
+    {ready && <span>{cloudMode ? 'Aplicativo preparado. Acesso aos dados na nuvem depende de conexão.' : 'Disponível offline neste navegador.'}</span>}
     {message && <span role="status">{message}</span>}
     {reloadPending && <button className={styles.secondary} onClick={() => {
       if (document.querySelector('dialog[open]')) setMessage('Salve ou feche o formulário antes de recarregar a aplicação.');

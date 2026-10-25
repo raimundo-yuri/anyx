@@ -1,5 +1,9 @@
 # Backup, importação, relatórios e Power BI
 
+## Portabilidade entre os modos local e nuvem
+
+O mesmo backup v6 é aceito nos dois modos; não há migração automática por domínio nem mesclagem de bases. Restauração na nuvem substitui os registros compartilhados após comparar o estado com a prévia. A nuvem aceita inicialmente 2 MiB de estado JSON e 100 comandos por lote; um arquivo local dentro do limite de leitura ainda pode exceder esses limites. A operação é recusada por inteiro, sem importação parcial. Continue guardando backups protegidos fora do dispositivo; a nuvem não é backup automático. Consulte [Vercel e Supabase](VERCEL-E-SUPABASE.md).
+
 ## Agenda iCalendar (.ics) — versão 0.12
 
 Exportação local em **Agenda e pendências**, a partir dos filtros ativos. Inclui todas as páginas da seleção, até 5.000 itens com data, sem inventar vencimento para itens sem prazo. O arquivo informa quantos itens foram exportados e quantos não tinham data. Não é backup restaurável nem formato de importação financeira.
@@ -8,13 +12,13 @@ Eventos são de dia inteiro, com DTSTART/DTEND em datas civis e DTSTAMP UTC. UID
 
 Opcionalmente inclui VALARM de um dia antes, somente para datas futuras, quando o operador marca essa opção. A execução do lembrete depende do calendário importador e de suas permissões/configurações. O DexFin não agenda push, e-mail ou processos de fundo.
 
-O exportador escapa texto, delimitadores e quebras de linha e dobra linhas em até 75 octetos UTF-8 sem dividir caracteres. A seleção inteira é validada antes de solicitar o download; erro não produz arquivo parcial. Fim do ano 9999 é recusado porque não permite representar o dia seguinte no mesmo formato. Os registros e o esquema do backup continuam inalterados (esquema 5, envelope v5). O .ics contém nomes/descrições e valores legíveis: proteja o arquivo e escolha conscientemente o calendário de destino.
+O exportador escapa texto, delimitadores e quebras de linha e dobra linhas em até 75 octetos UTF-8 sem dividir caracteres. A seleção inteira é validada antes de solicitar o download; erro não produz arquivo parcial. Fim do ano 9999 é recusado porque não permite representar o dia seguinte no mesmo formato. A exportação .ics não muda os registros. Na versão 0.13, a base local e o envelope de backup estão na versão 6. O .ics contém nomes/descrições e valores legíveis: proteja o arquivo e escolha conscientemente o calendário de destino.
 
 ## Backup
 
 Em **Relatórios e backup**, escolha exportar com senha (padrão) ou desative explicitamente a criptografia. O arquivo inclui todas as tabelas, lançamentos, relações e recibos de idempotência.
 
-Formato JSON atual `dexfin`, versão 5, com `exportedAt` UTC e `state`. Todas as tabelas atuais são obrigatórias. O leitor também aceita os envelopes v2/v3/v4 e adapta estados legados quando necessário sem trocar IDs; parcelas únicas antigas são derivadas da compra original. Versões desconhecidas são rejeitadas. Estornos de correção exigem v3 ou posterior; subcategorias exigem v4; devoluções comerciais exigem v5. Leitores antigos não entendem os novos formatos. O envelope criptografado continua na versão 1 e protege o JSON interno atual.
+Formato JSON atual `dexfin`, versão 6, com `exportedAt` UTC e `state`. Todas as tabelas atuais são obrigatórias. O leitor também aceita os envelopes v2/v3/v4/v5 e adapta estados legados quando necessário sem trocar IDs; parcelas únicas antigas são derivadas da compra original. Versões desconhecidas são rejeitadas. Estornos de correção exigem v3 ou posterior; subcategorias exigem v4; devoluções comerciais exigem v5; correções de pagamentos, reembolsos e devoluções exigem v6. Leitores antigos não entendem os novos formatos. O envelope criptografado continua na versão 1 e protege o JSON interno atual.
 
 Formato protegido `dexfin-encrypted`, versão 1: PBKDF2-SHA-256 com 310.000 iterações, salt aleatório de 16 bytes, chave AES-GCM de 256 bits e IV aleatório de 12 bytes. A chave não é extraível; salt/IV e ciphertext ficam no envelope. A senha não é gravada. Perda da senha significa perda do acesso a esse backup. Integridade autenticada detecta senha incorreta ou ciphertext alterado; um backup JSON sem proteção não é prova de autenticidade contra alteração intencional.
 

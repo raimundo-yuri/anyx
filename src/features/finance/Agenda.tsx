@@ -4,7 +4,7 @@ import type { State } from '../../domain/model';
 import { agendaCounts, agendaItems, agendaKinds, agendaMonth, agendaStatuses, filterAgenda, type AgendaKind, type AgendaStatus } from '../../application/agenda';
 import { displayDate, formatMoney } from '../../application/finance-view';
 import { userError } from '../../application/user-error';
-import { localRepository } from '../../infrastructure/database';
+import { repository } from '../../infrastructure/repository';
 import { exportCalendar } from '../../portability/calendar';
 import { downloadFile } from '../../portability/download';
 import { FinanceData } from './FinanceData';
@@ -43,7 +43,7 @@ function AgendaContent({ state, onNavigate }: { state: State; onNavigate: (page:
     if (lock.current) return;
     lock.current = true; setBusy(true); setError(''); setNotice('');
     try {
-      const reference = today(), current = await localRepository.read();
+      const reference = today(), current = await repository.read();
       const selection = filterAgenda(agendaItems(current, reference), filters);
       const result = exportCalendar(selection, { today: reference, reminder });
       downloadFile(`DexFin-agenda-${mode === 'month' ? month : reference}.ics`, result.text, 'text/calendar;charset=utf-8');
