@@ -1,6 +1,12 @@
 import { existsSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
 
+// Health checks must reach the local Vite server in proxied cloud shells.
+// Preserve inherited exceptions and leave external traffic on the configured proxy.
+const loopbackExceptions = [process.env.no_proxy ?? process.env.NO_PROXY ?? '', 'localhost', '127.0.0.1', '::1'].filter(Boolean).join(',');
+process.env.NO_PROXY = loopbackExceptions;
+process.env.no_proxy = loopbackExceptions;
+
 export default defineConfig({
   testDir: './tests/browser',
   fullyParallel: false,

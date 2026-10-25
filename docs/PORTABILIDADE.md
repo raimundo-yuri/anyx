@@ -1,5 +1,15 @@
 # Backup, importação, relatórios e Power BI
 
+## Agenda iCalendar (.ics) — versão 0.12
+
+Exportação local em **Agenda e pendências**, a partir dos filtros ativos. Inclui todas as páginas da seleção, até 5.000 itens com data, sem inventar vencimento para itens sem prazo. O arquivo informa quantos itens foram exportados e quantos não tinham data. Não é backup restaurável nem formato de importação financeira.
+
+Eventos são de dia inteiro, com DTSTART/DTEND em datas civis e DTSTAMP UTC. UID é estável por item de origem; isso permite reconhecer a mesma identidade, mas não garante como cada calendário trata nova importação. Não há sincronização, cancelamento remoto ou remoção automática do evento antigo. O arquivo usa METHOD:PUBLISH, STATUS:TENTATIVE e não possui convidados/organizadores. Nenhum pagamento é confirmado ao importar.
+
+Opcionalmente inclui VALARM de um dia antes, somente para datas futuras, quando o operador marca essa opção. A execução do lembrete depende do calendário importador e de suas permissões/configurações. O DexFin não agenda push, e-mail ou processos de fundo.
+
+O exportador escapa texto, delimitadores e quebras de linha e dobra linhas em até 75 octetos UTF-8 sem dividir caracteres. A seleção inteira é validada antes de solicitar o download; erro não produz arquivo parcial. Fim do ano 9999 é recusado porque não permite representar o dia seguinte no mesmo formato. Os registros e o esquema do backup continuam inalterados (esquema 5, envelope v5). O .ics contém nomes/descrições e valores legíveis: proteja o arquivo e escolha conscientemente o calendário de destino.
+
 ## Backup
 
 Em **Relatórios e backup**, escolha exportar com senha (padrão) ou desative explicitamente a criptografia. O arquivo inclui todas as tabelas, lançamentos, relações e recibos de idempotência.

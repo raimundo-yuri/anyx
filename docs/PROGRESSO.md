@@ -243,3 +243,33 @@ Backups novos usam envelope v5 estrito, preservando leitura v2/v3/v4 e envelope 
 - A primeira execução da interface encontrou ordem instável das divisões ao ler os UUIDs do IndexedDB. A tela agora ordena parte própria e pessoas de forma estável; o cálculo continua vinculado ao ID exato da divisão. Os testes finais passaram após a correção. Captura móvel foi inspecionada; a prévia recebe foco para ser encontrada sem procurar no formulário longo.
 
 Limites: crédito comercial efetivo no cartão. Cancelamento simples de parcelas, crédito direto em banco, contestação, juros/tarifas, correção de uma devolução comercial incorreta e sincronização entre dispositivos seguem sem implementação. O resultado não equivale a teste em todos os navegadores/dispositivos físicos ou auditoria externa. Não houve acesso ao perfil financeiro pessoal do usuário.
+
+
+## Etapa 17 — agenda e central de pendências, versão 0.12.0
+
+O usuário autorizou continuar as melhorias gratuitas e publicações. A nova seção reúne pendentes atuais de faturas, previsões abertas, reembolsos e seus planos, principal de empréstimos, metas e contribuições. Dashboard e assistente usam a mesma consulta. Não gera ocorrências recorrentes, confirma pagamentos/recebimentos nem reabre previsões encerradas ou com realização estornada.
+
+A central mostra todos os meses, com contadores de datas ultrapassadas, itens para hoje e itens sem data. Oferece filtros por tipo/situação/texto, calendário mensal a partir de segunda-feira, seleção de dia, paginação de 20 itens e navegação ao módulo de origem. Metas, sugestões e entradas esperadas são identificadas separadamente, sem total que as confunda com dívida ou caixa. Datas de compra/recebimento não viram vencimentos fictícios.
+
+Os valores são os saldos pendentes atuais nas datas prometidas; escolher mês passado não faz reconstrução contábil nem ressuscita itens quitados depois. O cronograma de reembolso usa os pagamentos/cancelamentos já validados na versão anterior, sem duplicar recebível. Valor a devolver a pessoa permanece sem data quando não há promessa. A referência civil considera o fuso do app e é revista ao retomar a aba e em intervalos de um minuto.
+
+## Etapa 18 — exportação iCalendar
+
+Download local .ics com todos os itens datados da seleção (inclusive outras páginas), limitado a 5.000 eventos. Itens sem prazo ficam fora, com quantidade informada. Eventos de dia inteiro mantêm datas civis, UID estável, DTSTAMP UTC e textos escapados/dobrados por octetos UTF-8. Não há convidados, convite por e-mail, conta externa ou conexão de calendário. Lembrete DISPLAY de um dia antes é opcional e limitado a datas futuras.
+
+O arquivo é uma cópia, sem atualização/cancelamento automático. A tela explica que importar/reimportar e executar lembretes depende do cliente, pode gerar duplicatas e não confirma fatos financeiros. Descrições/valores estão legíveis; o usuário escolhe onde guardar/importar. Não é backup. A exportação lê um snapshot atual e não altera operações, reservas ou recibos; comparação do estado inteiro antes/depois foi exercitada em navegador real.
+
+Esquema local 5 e envelope de backup v5 mantidos, sem migração nem dependências novas. Guias de uso, arquitetura, privacidade, portabilidade e manutenção refletem a entrega.
+
+### Validação da versão 0.12.0
+
+- `npm run check`: 213 testes aprovados, tipagem e build aprovados.
+- `npm run test:browser`: 20 fluxos aprovados em desktop e viewport móvel.
+- Regressão completa de produção: 44 testes aprovados, incluindo oito novos cenários de agenda vazia/bissexta, fontes/filtros/ICS/estado preservado, pagamento em outra aba, recarga offline, exportação de todas as páginas e referência ao retomar no dia seguinte.
+- `npm run test:pages`: dois testes aprovados no caminho `/anyx/`, com manifesto, cache e escrita offline.
+- Total: 279 testes distintos aprovados. Captura móvel do calendário inspecionada; largura da tela validada. Não equivale a validação em aparelho físico ou em todos os clientes de calendário.
+- `npm audit --audit-level=moderate`: zero vulnerabilidades conhecidas. Nenhuma dependência ou serviço pago adicionado.
+
+O primeiro teste de navegador foi impedido por um falso diagnóstico de porta ocupada: o proxy do shell recebia as requisições de checagem de localhost, apesar de não existir processo ouvindo. A configuração do Playwright agora preserva o proxy externo e as exceções herdadas, acrescentando exceções apenas de loopback nos processos de teste. Nenhum serviço foi interrompido e não houve alteração da rede do aplicativo publicado. Na primeira rodada da interface, um localizador por texto de label não identificou o select; a seleção passou a usar o papel/nome acessível do controle. A regressão final acima foi executada depois das correções, sem falhas.
+
+Limites: agenda de pendências atuais, não extrato histórico; sem sincronização entre aparelhos ou calendários, push em segundo plano, Open Finance, XLSX, anexos ou amortização automática. A aplicação permanece local e o arquivo .ics não substitui um backup financeiro protegido.

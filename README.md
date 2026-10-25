@@ -1,6 +1,6 @@
 # DexFin
 
-Gestão financeira pessoal em português, com persistência local, valores em centavos e regras contábeis independentes da interface. Versão 0.11.0: acrescenta devoluções comerciais integrais/parciais de compras no cartão, crédito com o emissor e dinheiro a devolver a pessoas, com prévia e histórico preservado. Mantém OFX, subcategorias, conferência de saldo, backups e funcionamento offline. Recursos ainda ausentes estão listados explicitamente.
+Gestão financeira pessoal em português, com persistência local, valores em centavos e regras contábeis independentes da interface. Versão 0.12.0: acrescenta agenda mensal, central de pendências e exportação de vencimentos para calendário (.ics). Mantém devoluções comerciais de cartão, OFX, subcategorias, conferência de saldo, backups e funcionamento offline. Recursos ainda ausentes estão listados explicitamente.
 
 ## Testar no computador ou celular
 
@@ -17,6 +17,8 @@ Gestão financeira pessoal em português, com persistência local, valores em ce
 - Pessoas, valores a receber, plano independente de reembolso e pagamentos parciais, sem duplicar consumo/renda.
 - Dashboard com cinco indicadores, gráficos SVG acessíveis, categorias, evolução mensal, vencimentos e recebíveis reais.
 - Contribuições por fonte, percentual em pontos-base, sugestão/reserva, ajuste, cancelamento e pagamento.
+- Agenda com faturas, previsões, reembolsos, empréstimos, metas e contribuições; filtros, datas ultrapassadas, itens sem data e acesso ao módulo de origem.
+- Exportação iCalendar (.ics) da seleção, com lembrete opcional para eventos futuros; arquivo local sem sincronização ou confirmação financeira.
 - Orçamentos por categoria/mês, metas com reserva de caixa, previsões e recorrências mensais geradas explicitamente.
 - Investimentos manuais (aporte, resgate e avaliação), patrimônio e empréstimos com principal e juros separados.
 - Assistente local com consultas estruturadas, simulação conservadora e lançamento de receita/despesa com prévia e confirmação.
@@ -62,6 +64,8 @@ Os runners iniciam/encerram seus próprios servidores em loopback, nas portas 51
 
 Os testes usam bancos/contextos isolados e dados sintéticos, sem semear a instalação pessoal. Não equivalem a testes em Android físico, Safari ou Firefox. O build gera `dist/`, manifesto e service worker, com bibliotecas e seções divididas em chunks.
 
+Em shells com proxy, a configuração do Playwright preserva o proxy externo e acrescenta exceções apenas para localhost/loopback nos processos de teste. Isso evita que a checagem do servidor Vite seja encaminhada ao proxy e confundida com uma porta já ocupada; não altera a rede do aplicativo publicado.
+
 ## Publicação no GitHub Pages
 
 O fluxo [.github/workflows/pages.yml](.github/workflows/pages.yml) valida os testes, gera o build com a base informada pelo Pages e publica os arquivos estáticos após cada envio para `main`. As ações oficiais estão fixadas por SHA. Não há credencial no código do app; o fluxo usa o token temporário do próprio GitHub.
@@ -74,13 +78,15 @@ Banco IndexedDB `dexfin`, esquema 5, com migrações testadas a partir dos esque
 
 **IndexedDB não é criptografado.** Quem controla o perfil/dispositivo pode acessar os dados. O backup com senha usa PBKDF2-SHA-256 e AES-GCM; a senha não é salva. Perder a senha impede recuperar o arquivo. Backup sem senha contém dados legíveis. Exportar/publicar o ambiente de desenvolvimento não é backup dos registros do navegador.
 
-Limpar o site ou perder o dispositivo pode remover o banco. Faça backups e teste a restauração em um perfil separado. A restauração substitui todos os dados após prévia e confirmação, recusando a operação se o banco mudou desde a prévia. Se um estado inconsistente bloquear a tela normal, **Abrir recuperação de dados** permite validar um backup e preservar uma cópia de diagnóstico antes da troca confirmada. Armazenamento inacessível ainda precisa ser restabelecido. Backups novos usam envelope v5; o leitor mantém compatibilidade com v2/v3/v4. Subcategorias exigem v4; devoluções comerciais exigem v5. Versões antigas não entendem o novo esquema; guarde um backup antes de atualizar e avalie compatibilidade antes de retornar o código. Arquivos até 20 MiB; CSV até 5.000 linhas. Consulte [backup e Power BI](docs/PORTABILIDADE.md).
+Limpar o site ou perder o dispositivo pode remover o banco. Faça backups e teste a restauração em um perfil separado. A restauração substitui todos os dados após prévia e confirmação, recusando a operação se o banco mudou desde a prévia. Se um estado inconsistente bloquear a tela normal, **Abrir recuperação de dados** permite validar um backup e preservar uma cópia de diagnóstico antes da troca confirmada. Armazenamento inacessível ainda precisa ser restabelecido. Backups novos usam envelope v5; o leitor mantém compatibilidade com v2/v3/v4. Subcategorias exigem v4; devoluções comerciais exigem v5. Versões anteriores à 0.11 não entendem o esquema 5; guarde um backup antes de atualizar e avalie compatibilidade antes de retornar o código. Arquivos até 20 MiB; CSV até 5.000 linhas. Consulte [backup e Power BI](docs/PORTABILIDADE.md).
 
 ## Limitações explícitas
 
 Sem sincronização remota ou Open Finance; sem coleta de senhas bancárias. XLSX e anexos/comprovantes ainda não estão implementados. OFX aceita o subconjunto bancário BRL documentado; a conferência manual compara saldos e não salva sessões nem cria ajustes. Não há conciliação automática com bancos. A correção de receita/despesa/transferência usa estorno integral e um novo lançamento revisado; não há edição financeira no registro original. Devoluções comerciais de compras no cartão são aceitas no fluxo de crédito documentado, inclusive parciais. Cancelamento simples de parcelas, crédito direto em banco, contestação, correção de devoluções/pagamentos, empréstimos/investimentos e renegociações permanecem pendentes. Cadastros têm edição/arquivamento; o histórico financeiro é preservado.
 
 Recorrências geram previsões por ação manual, sem cron em segundo plano. Projeções são cenários incertos e não reconhecem automaticamente registros diferentes do mesmo compromisso; não duplique uma obrigação como fatura/previsão/reserva. Empréstimos têm principal e juros informados no pagamento, sem amortização automática. Investimentos são manuais, sem cotações ou controle fiscal/custo médio; a avaliação não cria caixa e um rendimento recebido não deve ser registrado também como resgate do mesmo valor.
+
+A agenda usa os pendentes atuais nas datas cadastradas, inclusive quando você consulta um mês passado; não é uma reconstrução contábil naquela data. Metas, entradas esperadas e pagamentos aparecem identificados, sem uma soma que os confunda. O arquivo .ics é uma cópia local com até 5.000 itens datados da seleção e não sincroniza alterações/cancelamentos. Importação, atualização e lembretes dependem do calendário escolhido; itens sem prazo não recebem data fictícia. Exportar a agenda não substitui backup nem confirma fatos financeiros.
 
 O assistente interpreta formatos limitados e exige nomes exatos e confirmação. Não é um modelo de linguagem nem decide compras por você. Os adaptadores CSV/OFX não afirmam compatibilidade universal com bancos; importações de cartão/investimentos, correções OFX e câmbio não são suportadas. A deduplicação de OFX não adivinha equivalência com registros manuais/CSV. PDF usa a impressão do navegador. A validação completa do histórico favorece integridade, mas pode ser lenta com bancos grandes; medir antes de ampliar o volume de importação.
 

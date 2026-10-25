@@ -1,4 +1,20 @@
-# Como usar — versão 0.11.0
+# Como usar — versão 0.12.0
+
+## Agenda e pendências
+
+Abra **Agenda e pendências** para consultar faturas, previsões, reembolsos prometidos, principal de empréstimos, metas e contribuições ainda abertas. A tela inicial mostra todos os meses; os contadores destacam datas ultrapassadas, itens para hoje e itens sem data. Clicar em um contador ajusta a lista. O resumo da Visão geral também leva a essa central.
+
+Filtre por tipo/situação ou busque descrição, pessoa e conta. **Calendário mensal** mostra uma grade começando na segunda-feira; selecione o mês e um dia para consultar seus itens. Clique no dia novamente ou em **Mostrar o mês inteiro** para retirar a seleção. **Todas as pendências** volta à lista sem limite de mês. Os itens sem data continuam identificados separadamente quando nenhum dia está escolhido, independentemente do mês; a data da compra ou do recebimento não vira um vencimento inventado.
+
+Valores representam o que falta **agora**, nas datas cadastradas. Não são saldos reconstituídos do mês escolhido: um pagamento feito depois retira a pendência também de um mês passado. A fatura aparece uma vez por ciclo com o restante a pagar; o plano de reembolso segue seu próprio cronograma, com pagamentos e cancelamentos aplicados. Metas mostram quanto falta reservar, sem tratar isso como despesa. Entradas são esperadas e não entram no caixa antes do recebimento real.
+
+**Abrir em…** leva à seção de origem, onde você confere e registra o fato efetivamente realizado. Consultar, filtrar ou exportar a agenda não confirma pagamentos, recebimentos, reservas ou previsões. Uma alteração em outra aba atualiza a lista. A data de referência considera o fuso do aplicativo e é revista ao retomar a aba e ao mudar de dia. A consulta funciona offline após a preparação da PWA.
+
+Para levar a seleção ao calendário de sua preferência, use **Baixar agenda (.ics)**. O arquivo inclui todos os itens com data que atendem aos filtros, inclusive os de outras páginas da lista. Itens sem prazo ficam fora do arquivo. Opcionalmente, marque **Pedir lembrete um dia antes dos eventos futuros**; o calendário decide se consegue importar os eventos e acionar esse lembrete.
+
+O arquivo é uma **cópia daquele momento**. Não há conta conectada, envio automático ou sincronização: eventos importados não desaparecem quando você paga/cancela/altera algo no DexFin. Confira e atualize-os no calendário manualmente; dependendo do aplicativo, importar de novo pode criar duplicatas. Descrições e valores estão legíveis no .ics; escolha onde guardar/importar. O arquivo não substitui o backup financeiro.
+
+O assistente local também consulta a mesma base de pendências para perguntas sobre agenda, datas ultrapassadas e próximos vencimentos. A resposta separa itens sem data e não registra fatos financeiros.
 
 O DexFin é local. Seus dados pertencem ao perfil e à origem do navegador; não há conta externa, integração bancária ou sincronização. Faça backups: limpar os dados do site, mudar porta/perfil ou perder o dispositivo pode retirar o acesso aos registros.
 

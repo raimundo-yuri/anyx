@@ -1,3 +1,4 @@
+import { agendaCounts, agendaItems, agendaKinds } from './agenda';
 import type { State } from '../domain/model';
 import { balance, summary } from '../domain/queries';
 import { parseBRL, sum } from '../domain/money';
@@ -33,6 +34,13 @@ export const localAssistant: AssistantProvider = {
       try { amount = parseBRL((expense ?? income)![1]); if (amount <= 0) throw new Error(); }
       catch { return { text: 'Qual é o valor positivo em formato brasileiro? Exemplo: 12,50.' }; }
       return { text: `Prévia: ${kind === 'expense' ? 'despesa' : 'receita'} de ${formatMoney(amount)} em ${account.name}, categoria ${category.name}, na data ${today.split('-').reverse().join('/')}. Revise e confirme antes de salvar.`, command: { type: kind, amount, date: today, description: question.trim().slice(0, 120), accountId: account.id, categoryId: category.id, ...(source ? { sourceId: source.id } : {}) } };
+    }
+    if (text.includes('pendenc') || text.includes('agenda') || (text.includes('venc') && !text.includes('assinatura'))) {
+      const items = agendaItems(state, today), counts = agendaCounts(items);
+      const end = new Date(`${today}T12:00:00Z`); end.setUTCDate(end.getUTCDate() + 7);
+      const until = end.toISOString().slice(0, 10), overdue = text.includes('atras') || text.includes('vencid');
+      const selection = items.filter(item => overdue ? item.status === 'overdue' : item.date !== null && item.date >= today && item.date <= until);
+      return { text: `${overdue ? 'Itens com data ultrapassada' : 'Pendências com data de hoje até os próximos 7 dias'}: ${selection.length}.\n${selection.slice(0, 12).map(item => `${item.date!.split('-').reverse().join('/')} · ${agendaKinds[item.kind]} · ${item.title}: ${formatMoney(item.amount)}`).join('\n')}\nHá ${counts.undated} item(ns) sem data cadastrada. ${selection.length > 12 ? 'A lista completa está em Agenda e pendências. ' : ''}Origem: pendências atuais dos seus registros. Entradas são esperadas; metas não são despesas. Consultar não confirma pagamento ou recebimento.` };
     }
     if (text.includes('devolver')) return { text: `Há ${formatMoney(totals.personPayable)} a devolver a pessoas por compras estornadas. Isso é uma obrigação, sem nova despesa; confira cada compra em Pessoas e recebíveis.` };
     if (text.includes('pessoas') || text.includes('devem') || text.includes('receber')) return { text: `Terceiros devem ${formatMoney(sum([totals.receivables, balance(state, 'loanAsset')]))}: ${formatMoney(totals.receivables)} de compras compartilhadas e ${formatMoney(balance(state, 'loanAsset'))} de principal emprestado. Origem: lançamentos de recebíveis e empréstimos, menos pagamentos registrados. Isso não é dinheiro disponível em conta.` };

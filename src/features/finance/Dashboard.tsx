@@ -1,6 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { ArrowRight, CalendarDays, Plus, ShieldCheck } from 'lucide-react';
 import type { State } from '../../domain/model';
+import { agendaItems, agendaCounts } from '../../application/agenda';
+import { useToday } from './use-today';
 import { dashboardData } from '../../application/dashboard';
 import { displayDate, formatMoney } from '../../application/finance-view';
 import { FinanceData } from './FinanceData';
@@ -12,6 +14,8 @@ export function HomeDashboard({ children, onNavigate }: { children: ReactNode; o
 }
 function Dashboard({ state, onNavigate }: { state: State; onNavigate: (page: string) => void }) {
   const [month, setMonth] = useState(() => today().slice(0, 7));
+  const reference = useToday();
+  const pending = useMemo(() => agendaCounts(agendaItems(state, reference)), [state, reference]);
   const data = dashboardData(state, month);
   const values = data.trend.flatMap(item => [item.income, item.expenses]);
   const min = Math.min(0, ...values), max = Math.max(0, ...values);
@@ -27,6 +31,7 @@ function Dashboard({ state, onNavigate }: { state: State; onNavigate: (page: str
       ['Faturas pendentes', data.totals.invoices, 'Obrigações atuais do cartão, incluindo parcelas futuras quando existentes.'],
       ['Dinheiro reservado', data.totals.reserved, 'Reservas próprias; não são uma nova despesa.'],
     ].map(([label, value, help]) => <div key={String(label)} title={String(help)}><span>{label}</span><strong>{formatMoney(Number(value))}</strong><small>{help}</small></div>)}</div>
+    {pending.total > 0 && <section className={styles.accountCard} style={{ marginBottom: 20 }} aria-label="Resumo das pendências"><div className={styles.toolbar}><div><h2 className={styles.subheading}>O que precisa da sua atenção</h2><p className={styles.hint}>{pending.overdue} item(ns) com data ultrapassada · {pending.today} para hoje · {pending.undated} sem data. Inclui compromissos, entradas esperadas e metas de todos os meses; não soma esses valores como uma dívida única.</p></div><button className={styles.secondary} onClick={() => onNavigate('agenda')}>Ver agenda e pendências</button></div></section>}
     <div className={styles.gridTwo}><section className={styles.accountCard}><div className={styles.toolbar}><h3>Receitas e despesas</h3><span className={styles.muted}>Últimos 6 meses</span></div>
       {data.trend.every(item => item.income === 0 && item.expenses === 0) ? <p className={styles.hint}>Ainda não há receitas ou despesas nos meses selecionados.</p> : <><svg className={styles.chart} viewBox="0 0 580 230" role="img" aria-label="Evolução mensal de receitas e despesas; valores exatos na tabela abaixo"><line x1="30" y1={y(0)} x2="550" y2={y(0)} stroke="#ffffff19" /><line x1="30" y1="115" x2="550" y2="115" stroke="#ffffff09" /><polyline points={points('income')} fill="none" stroke="#b6ef86" strokeWidth="3" strokeLinejoin="round" /><polyline points={points('expenses')} fill="none" stroke="#d5a58b" strokeWidth="3" strokeLinejoin="round" />{data.trend.map((item, index) => <text key={item.month} x={40 + index * 100} y="214" textAnchor="middle" fill="#a7b59b" fontSize="11">{item.month.split('-').reverse().join('/')}</text>)}</svg><div className={styles.legend}><span><i className={styles.dot} />Receitas</span><span><i className={styles.dot} style={{ background: '#d5a58b' }} />Despesas</span></div></>}
       <details className={styles.hint}><summary>Ver valores mensais</summary><ul className={styles.detailList}>{data.trend.map(item => <li key={item.month}><span>{item.month.split('-').reverse().join('/')}</span><span>{formatMoney(item.income)} / {formatMoney(item.expenses)}</span></li>)}</ul></details>

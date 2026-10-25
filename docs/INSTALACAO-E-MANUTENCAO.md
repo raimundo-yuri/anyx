@@ -1,4 +1,6 @@
-# Instalação, primeiros passos e manutenção — 0.11.0
+# Instalação, primeiros passos e manutenção — 0.12.0
+
+A versão 0.12 acrescenta agenda/central de pendências e exportação .ics sem serviço externo ou configuração adicional. O esquema local e o formato do backup continuam em 5. Na PWA, a atualização inclui o novo módulo e seu cache estático. .ics é uma cópia de agenda e não substitui backup/restauração.
 
 O DexFin está preparado para uso pessoal local no navegador. A publicação no GitHub Pages já está ativa em https://raimundo-yuri.github.io/anyx/ para computador e celular. Não há nova ativação a cada versão. Não há cadastro externo, serviço pago ou credencial bancária a configurar. O ambiente de desenvolvimento já preparado pode continuar sendo usado; publicar configurações desse ambiente não publica o aplicativo nem transfere os registros do navegador.
 
@@ -35,7 +37,7 @@ Não é necessário criar `.env` para usar os padrões. Para personalizar, copie
 
 Se registrar uma receita, despesa ou transferência por engano, use **Movimentações → Estornar**, revise os efeitos e confirme com um motivo. Depois registre os dados corretos, se necessário. O original permanece no histórico.
 
-A atualização para 0.11 usa esquema local 5 e backups v5, preservando leitura de backups v2/v3/v4. Faça um backup antes de atualizar e feche formulários/abas antigas; versões anteriores não entendem as novas devoluções comerciais ou o esquema novo. Não retorne código antigo sobre um banco atualizado sem avaliar compatibilidade.
+A versão 0.12 mantém o esquema local 5 e backups v5, preservando leitura de backups v2/v3/v4. A agenda consulta os registros existentes, sem nova migração ou regravação do histórico. Faça um backup antes de atualizar e feche formulários/abas antigas; versões anteriores à 0.11 não entendem as devoluções comerciais ou o esquema 5. Não retorne código antigo sobre um banco atualizado sem avaliar compatibilidade.
 
 O [guia de uso](USO.md) explica contribuições, parcelas, recebíveis, previsões, metas, empréstimos e investimentos. A tela inicial fica vazia até você cadastrar dados reais.
 
@@ -102,9 +104,9 @@ Para distribuir um arquivo no ambiente Linux, após validar o build:
 
 ```sh
 mkdir -p releases
-tar -czf releases/dexfin-0.11.0-web.tar.gz -C dist . -C .. LICENSE docs/LICENCAS-TERCEIROS.txt
-(cd releases && sha256sum dexfin-0.11.0-web.tar.gz > dexfin-0.11.0-web.tar.gz.sha256)
-(cd releases && sha256sum -c dexfin-0.11.0-web.tar.gz.sha256)
+tar -czf releases/dexfin-0.12.0-web.tar.gz -C dist . -C .. LICENSE docs/LICENCAS-TERCEIROS.txt
+(cd releases && sha256sum dexfin-0.12.0-web.tar.gz > dexfin-0.12.0-web.tar.gz.sha256)
+(cd releases && sha256sum -c dexfin-0.12.0-web.tar.gz.sha256)
 ```
 
 O arquivo contém o site estático e as licenças de distribuição, sem incluir o IndexedDB do navegador. O checksum detecta alterações em relação ao arquivo original recebido; sozinho não autentica a origem. Preserve também o código-fonte/lockfile da versão para manutenção.

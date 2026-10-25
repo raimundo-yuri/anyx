@@ -1,4 +1,12 @@
-# Arquitetura — versão 0.11.0
+# Arquitetura — versão 0.12.0
+
+## Agenda, pendências e calendário
+
+`application/agenda.ts` deriva itens somente dos saldos e planos existentes. Faturas são agrupadas por registro/ciclo, recebíveis usam `receivablePlan` e empréstimos usam principal restante. Metas e contribuições mantêm naturezas distintas; não há total financeiro que some entradas incertas, metas e obrigações. Recebíveis sem promessa e obrigações a devolver a pessoas permanecem sem data. Consultar a agenda não gera recorrências nem reabre previsões encerradas ou com realização estornada.
+
+`features/finance/Agenda.tsx` oferece central de todos os meses, filtros, grade mensal acessível e paginação de 20 itens. A exportação lê um snapshot atual do repositório e usa os filtros da seleção inteira, sem limitar à página visível. `use-today.ts` atualiza a referência civil ao retomar a aba e no intervalo de um minuto, sem modificar dados. Dashboard e assistente consultam os mesmos seletores; os estados são atuais, não uma consulta contábil na data histórica do calendário.
+
+`portability/calendar.ts` gera o subconjunto iCalendar documentado, sem bibliotecas externas, acesso à rede, convidados ou escrita financeira. UID estável, escaping e folding UTF-8 são exercitados em testes. Importação, eventuais duplicatas, lembretes e atualização/cancelamento de eventos no cliente de calendário ficam a cargo do usuário/cliente; o arquivo é uma cópia, sem sincronização. Nenhuma tabela, índice, migração ou versão de backup foi adicionada na versão 0.12.
 
 ## Devoluções comerciais
 

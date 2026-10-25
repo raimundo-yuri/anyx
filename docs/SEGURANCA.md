@@ -1,4 +1,12 @@
-# Segurança e privacidade — revisão interna da versão 0.11.0
+# Segurança e privacidade — revisão interna da versão 0.12.0
+
+## Agenda e exportação de vencimentos
+
+A agenda é consulta de pendências atuais, sem comandos de liquidação ou geração implícita de ocorrências. O download .ics lê um snapshot coerente e não altera operações, valores, reservas ou recibos. Um teste compara o estado financeiro inteiro antes e depois da navegação/exportação. Valores sem vencimento permanecem sem data; metas e entradas incertas não são anunciadas como despesa ou caixa.
+
+O arquivo .ics contém descrições e valores legíveis. Não usa a senha do backup, não cria conta de calendário e não envia registros à rede. Ao importar em outro aplicativo, o usuário escolhe onde esses dados serão armazenados. O exportador escapa quebras de linha e delimitadores para impedir injeção de propriedades/eventos e dobra linhas por octetos UTF-8. IDs/datas/volume são validados; não há convidados, convites ou organizadores. Alarmes de exibição só são incluídos quando solicitados e para datas futuras.
+
+O arquivo é uma cópia: não registra pagamentos e não atualiza ou remove eventos previamente importados. Datas/valores desatualizados no calendário externo precisam de conferência manual. Não há garantia de lembrete em segundo plano ou interoperabilidade já testada em todos os aplicativos de calendário. Essa limitação é mostrada na tela antes do download.
 
 ## Ameaças e controles
 
