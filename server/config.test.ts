@@ -15,3 +15,9 @@ it('somente desenvolvimento local permite cookie sem Secure, e o fuso precisa se
   expect(serverConfig({ ...example, NODE_ENV: 'test', APP_ORIGIN: 'http://127.0.0.1:4186' }).secure).toBe(false);
   expect(() => serverConfig({ ...example, VITE_TIME_ZONE: 'inexistente' })).toThrow();
 });
+it('diagnóstico identifica somente o nome da variável inválida, sem revelar seu valor', () => {
+  for (const field of ['APP_ORIGIN', 'SUPABASE_URL', 'SESSION_SECRET', 'VITE_TIME_ZONE', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SECRET_KEY', 'DEXFIN_OWNER_ID']) {
+    try { serverConfig({ ...example, [field]: 'valor-privado' }); throw new Error('Deveria recusar'); }
+    catch (reason) { expect((reason as Error).message).toContain(field); expect((reason as Error).message).not.toContain('valor-privado'); }
+  }
+});
