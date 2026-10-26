@@ -1,4 +1,4 @@
-import { FinanceError } from './errors';
+import { FinanceError } from './errors.js';
 /** Money is stored as safe integer cents. Text conversion never uses float multiplication. */
 export function cents(value: number): number {
   if (!Number.isSafeInteger(value)) throw new FinanceError('Valor monetário fora do intervalo seguro de centavos.');

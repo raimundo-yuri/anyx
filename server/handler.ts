@@ -1,16 +1,16 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import type { ServerResponse } from 'node:http';
 import { z } from 'zod';
-import { commandSchema, emptyState, stateSchema, type State } from '../src/domain/model';
-import { execute } from '../src/domain/engine';
-import { assertState } from '../src/domain/integrity';
-import { FinanceError } from '../src/domain/errors';
-import { localToday } from '../src/application/finance-view';
-import { CLOUD_FORMAT, MAX_CLOUD_BATCH, MAX_CLOUD_STATE_BYTES } from '../src/application/cloud-contract';
-import { serverConfig, HttpError, type ServerConfig } from './config';
-import { providers, type AuthProvider, type CloudStore, type Identity, type Snapshot } from './provider';
-import { equalToken, randomToken, sessionCookie, SESSION_MS, unsealSession, type Session } from './session';
-import { body, headers, json, mutationOrigin, type ApiRequest } from './http';
+import { commandSchema, emptyState, stateSchema, type State } from '../src/domain/model.js';
+import { execute } from '../src/domain/engine.js';
+import { assertState } from '../src/domain/integrity.js';
+import { FinanceError } from '../src/domain/errors.js';
+import { localToday } from '../src/application/finance-view.js';
+import { CLOUD_FORMAT, MAX_CLOUD_BATCH, MAX_CLOUD_STATE_BYTES } from '../src/application/cloud-contract.js';
+import { serverConfig, HttpError, type ServerConfig } from './config.js';
+import { providers, type AuthProvider, type CloudStore, type Identity, type Snapshot } from './provider.js';
+import { equalToken, randomToken, sessionCookie, SESSION_MS, unsealSession, type Session } from './session.js';
+import { body, headers, json, mutationOrigin, type ApiRequest } from './http.js';
 
 const email = z.email().max(254), password = z.string().min(1).max(256);
 const login = z.strictObject({ email, password });

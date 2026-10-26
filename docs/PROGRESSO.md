@@ -307,3 +307,12 @@ A chave privilegiada fica apenas no servidor, em cliente separado do Auth. SQL c
 Não há projeto Supabase ou implantação Vercel configurados por este ambiente. O proprietário precisa criar o projeto gratuito, executar o SQL, criar/confirmar seu usuário, desativar cadastro público, inserir variáveis somente no painel Vercel e importar o repositório. Recuperação depende do template numérico e da entrega real de e-mail, sujeita às restrições do remetente gratuito. Nenhuma contratação foi feita.
 
 A aceitação final exige conferir HTTPS/cabeçalhos, autenticação, e-mail e sincronização no domínio real com PC/tablet, além de migrar uma única vez o backup. Não se afirma teste em aparelhos físicos, todos os navegadores, auditoria externa, criptografia de ponta a ponta ou backup remoto automático. A preparação de código não equivale à publicação real na Vercel. O objetivo aprovado de nuvem está registrado e passa a orientar as próximas versões.
+
+
+## Correção de execução na Vercel — versão 0.13.1
+
+A primeira publicação real apresentou `FUNCTION_INVOCATION_FAILED` no endpoint público de sessão. O log enviado pelo proprietário confirmou `ERR_MODULE_NOT_FOUND` para `/var/task/server/handler`, importado por `api/auth.js`. Os imports relativos sem extensão funcionavam com Vite/tsx nos testes anteriores, mas não no carregador ESM nativo do Node.js da Vercel. O build Ready não assegurava que as funções carregavam em execução.
+
+Imports da árvore inteira das duas APIs, incluindo o domínio compartilhado, agora apontam explicitamente para `.js`, resolvidos para TypeScript durante o desenvolvimento e para JavaScript na publicação. Não há mudança de dados, SQL, credenciais ou regras financeiras. `tsconfig.server.json` compila a árvore com NodeNext; o novo teste carrega as duas funções emitidas em processos Node nativos, sem Vite/tsx, com configuração fictícia isolada. Verifica sessão anônima, bloqueio financeiro 401 e configuração ausente 503 em JSON/no-store. O erro original foi reproduzido antes da correção. A compilação e os cenários nativos passam após a mudança e integram `npm test`/GitHub Actions.
+
+Validação da correção: 244 testes de domínio/persistência/API aprovados; teste de execução nativa aprovado com configuração ausente e sessão anônima nas duas APIs; 10 cenários cloud e 2 de Pages aprovados; TypeScript e builds local/cloud/Pages aprovados. O login real e os registros privados ainda dependem do teste pelo proprietário; não foram solicitadas ou utilizadas suas credenciais.

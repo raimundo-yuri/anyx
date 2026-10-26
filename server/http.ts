@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { MAX_CLOUD_REQUEST_BYTES } from '../src/application/cloud-contract';
-import { HttpError, type ServerConfig } from './config';
+import { MAX_CLOUD_REQUEST_BYTES } from '../src/application/cloud-contract.js';
+import { HttpError, type ServerConfig } from './config.js';
 export type ApiRequest = IncomingMessage & { body?: unknown };
 export function headers(response: ServerResponse) {
   response.setHeader('Cache-Control', 'private, no-store, max-age=0'); response.setHeader('Vary', 'Cookie');

@@ -1,7 +1,7 @@
 {
   "name": "dexfin",
   "private": true,
-  "version": "0.13.0",
+  "version": "0.13.1",
   "type": "module",
   "engines": {
     "node": ">=24 <25"
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:server:runtime",
     "test:watch": "vitest",
     "check": "npm run test && npm run build",
     "test:browser": "playwright test",
@@ -19,7 +19,8 @@
     "test:pages": "npm run build -- --base=/anyx/ --outDir=dist-pages && playwright test --config playwright.pages.config.ts",
     "build:cloud": "npm run typecheck && vite build --mode cloud",
     "test:cloud:server": "tsx server/test-server.ts",
-    "test:cloud": "npm run build:cloud -- --outDir=dist-cloud && playwright test --config playwright.cloud.config.ts"
+    "test:cloud": "npm run build:cloud -- --outDir=dist-cloud && playwright test --config playwright.cloud.config.ts",
+    "test:server:runtime": "node -e \"require('node:fs').rmSync('.server-build', { recursive: true, force: true })\" && tsc -p tsconfig.server.json && node --test tests/server-runtime.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0",

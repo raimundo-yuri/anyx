@@ -1,8 +1,8 @@
-import type { Command, Entry, Operation, State } from './model';
-import type { Context } from './engine';
-import { ensure, requireRecord } from './integrity';
-import { activeRefundAllocations, balance } from './queries';
-import { sum } from './money';
+import type { Command, Entry, Operation, State } from './model.js';
+import type { Context } from './engine.js';
+import { ensure, requireRecord } from './integrity.js';
+import { activeRefundAllocations, balance } from './queries.js';
+import { sum } from './money.js';
 
 type RefundCommand = Extract<Command, { type: 'purchaseRefund' | 'cardCreditUse' | 'personRefund' }>;
 type Posting = Pick<Entry, 'ledger' | 'referenceId' | 'side' | 'amount' | 'categoryId'>;

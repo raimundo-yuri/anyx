@@ -1,7 +1,7 @@
-import { FinanceError } from './errors';
-import type { Entry, State } from './model';
-import { validDate } from './dates';
-import { cents, sum } from './money';
+import { FinanceError } from './errors.js';
+import type { Entry, State } from './model.js';
+import { validDate } from './dates.js';
+import { cents, sum } from './money.js';
 
 /** Natural balances: asset/expense debit positive; liability/income/equity credit positive. */
 export function balance(state: State, ledger: Entry['ledger'], referenceId?: string): number {

@@ -1,4 +1,4 @@
-import { FinanceError } from './errors';
+import { FinanceError } from './errors.js';
 
 /** Structural type also accepts legacy root categories that have no parentId. */
 export interface CategoryNode {

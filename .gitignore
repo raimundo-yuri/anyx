@@ -18,3 +18,4 @@ releases/
 dist-cloud/
 test-results-cloud/
 .vercel/
+.server-build/

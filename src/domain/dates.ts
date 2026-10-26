@@ -1,4 +1,4 @@
-import { FinanceError } from './errors';
+import { FinanceError } from './errors.js';
 export function daysInMonth(year: number, month: number): number {
   if (!Number.isInteger(year) || year < 1 || year > 9999 || !Number.isInteger(month) || month < 1 || month > 12) throw new FinanceError('Mês inválido.');
   if (month === 2) return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28;

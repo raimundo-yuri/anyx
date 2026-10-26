@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
-import type { ServerConfig } from './config';
+import type { ServerConfig } from './config.js';
 const schema = z.strictObject({ id: z.string().regex(/^[a-f0-9]{64}$/), access: z.string().min(20).max(3072), refresh: z.string().min(8).max(512), tokenExpires: z.number().int(), expires: z.number().int(), csrf: z.string().regex(/^[a-f0-9]{64}$/) });
 export type Session = z.infer<typeof schema>;
 export const SESSION_MS = 8 * 60 * 60 * 1000;

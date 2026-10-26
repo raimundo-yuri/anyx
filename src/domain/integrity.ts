@@ -1,9 +1,9 @@
-import { assertCardRefunds } from './card-refunds';
-import { FinanceError } from './errors';
-import { isReversibleMovement, stateSchema, tableNames, type Entry, type State } from './model';
-import { balance, reserved, reversalFor, summary } from './queries';
-import { sum } from './money';
-import { assertCategoryHierarchy } from './categories';
+import { assertCardRefunds } from './card-refunds.js';
+import { FinanceError } from './errors.js';
+import { isReversibleMovement, stateSchema, tableNames, type Entry, type State } from './model.js';
+import { balance, reserved, reversalFor, summary } from './queries.js';
+import { sum } from './money.js';
+import { assertCategoryHierarchy } from './categories.js';
 
 export function requireRecord<T extends { id: string }>(records: readonly T[], id: string, label: string): T {
   const record = records.find(item => item.id === id);

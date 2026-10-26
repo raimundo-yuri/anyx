@@ -1,4 +1,4 @@
-DexFin 0.13.0 — licenças das bibliotecas do site e dependências de servidor identificadas abaixo.
+DexFin 0.13.1 — licenças das bibliotecas do site e dependências de servidor identificadas abaixo.
 Preservar estes avisos ao redistribuir. Atualizar ao alterar dependências.
 
 

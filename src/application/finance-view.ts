@@ -1,9 +1,9 @@
-import type { Operation, State } from '../domain/model';
-import { sum, cents } from '../domain/money';
-import { validDate } from '../domain/dates';
-import { FinanceError } from '../domain/errors';
-import { reversalFor } from '../domain/queries';
-import { categoryPath } from '../domain/categories';
+import type { Operation, State } from '../domain/model.js';
+import { sum, cents } from '../domain/money.js';
+import { validDate } from '../domain/dates.js';
+import { FinanceError } from '../domain/errors.js';
+import { reversalFor } from '../domain/queries.js';
+import { categoryPath } from '../domain/categories.js';
 
 export const operationLabels: Record<Operation['kind'], string> = {
   reversal: 'Estorno de correção', purchaseRefund: 'Devolução de compra', cardCreditUse: 'Crédito aplicado em fatura', personRefund: 'Devolução à pessoa',

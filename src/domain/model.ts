@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { validDate } from './dates';
+import { validDate } from './dates.js';
 
 export const idSchema = z.uuid();
 export const dateSchema = z.string().refine(validDate, 'Data civil inválida.');

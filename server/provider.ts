@@ -1,9 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import type { ServerConfig } from './config';
-import { HttpError } from './config';
-import type { State } from '../src/domain/model';
-import { CLOUD_FORMAT } from '../src/application/cloud-contract';
+import type { ServerConfig } from './config.js';
+import { HttpError } from './config.js';
+import type { State } from '../src/domain/model.js';
+import { CLOUD_FORMAT } from '../src/application/cloud-contract.js';
 
 export interface Tokens { access: string; refresh: string; tokenExpires: number }
 export interface Identity { id: string; email: string; confirmed: boolean; mfaEnrolled?: boolean }

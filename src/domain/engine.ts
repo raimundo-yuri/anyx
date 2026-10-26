@@ -1,11 +1,11 @@
-import { commandSchema, isReversibleMovement, type Command, type Entry, type State } from './model';
-import { assertState, ensure, requireRecord } from './integrity';
-import { balance, reversalFor } from './queries';
-import { cardRefundCommand } from './card-refunds';
-import { advancedCommand } from './advanced-engine';
-import { allocate, percentage, sum } from './money';
-import { invoiceDates, nextMonth } from './dates';
-import { catalogId, suggestedCategories, suggestedSources } from './catalog';
+import { commandSchema, isReversibleMovement, type Command, type Entry, type State } from './model.js';
+import { assertState, ensure, requireRecord } from './integrity.js';
+import { balance, reversalFor } from './queries.js';
+import { cardRefundCommand } from './card-refunds.js';
+import { advancedCommand } from './advanced-engine.js';
+import { allocate, percentage, sum } from './money.js';
+import { invoiceDates, nextMonth } from './dates.js';
+import { catalogId, suggestedCategories, suggestedSources } from './catalog.js';
 
 export interface Context { now: string; newId: () => string }
 export interface Execution { state: State; resultId: string; replayed: boolean }

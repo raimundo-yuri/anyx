@@ -1,6 +1,6 @@
 # DexFin
 
-Gestão financeira pessoal em português, com modos local e nuvem, valores em centavos e regras contábeis independentes da interface. Versão 0.13.0: acrescenta o modo nuvem para Vercel/Supabase, com login restrito, sincronização e estornos de pagamentos/reembolsos/devoluções. Mantém o modo local, agenda, OFX, subcategorias e backups. A infraestrutura externa ainda precisa ser configurada pelo proprietário. Recursos ainda ausentes estão listados explicitamente.
+Gestão financeira pessoal em português, com modos local e nuvem, valores em centavos e regras contábeis independentes da interface. Versão 0.13.1 (corrige o carregamento dos módulos do servidor na Vercel): acrescenta o modo nuvem para Vercel/Supabase, com login restrito, sincronização e estornos de pagamentos/reembolsos/devoluções. Mantém o modo local, agenda, OFX, subcategorias e backups. A infraestrutura externa ainda precisa ser configurada pelo proprietário. Recursos ainda ausentes estão listados explicitamente.
 
 ## Publicar na Vercel e sincronizar PC/tablet
 

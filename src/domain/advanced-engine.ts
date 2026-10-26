@@ -1,9 +1,9 @@
-import type { Command, Entry, State } from './model';
-import type { Context } from './engine';
-import { ensure, requireRecord } from './integrity';
-import { balance } from './queries';
-import { allocate, sum } from './money';
-import { daysInMonth, nextMonth } from './dates';
+import type { Command, Entry, State } from './model.js';
+import type { Context } from './engine.js';
+import { ensure, requireRecord } from './integrity.js';
+import { balance } from './queries.js';
+import { allocate, sum } from './money.js';
+import { daysInMonth, nextMonth } from './dates.js';
 
 type Income = { accountId: string; categoryId: string; sourceId: string; amount: number; date: string; description: string };
 export interface Posting {
